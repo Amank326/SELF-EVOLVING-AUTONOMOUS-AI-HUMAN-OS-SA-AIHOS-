@@ -287,7 +287,66 @@ SA-AIHOS is the **first implementation** of a **Self-Evolving Cognitive AI Syste
 
 ---
 
-## 🎮 Interact with the AI
+## � Environment-Aware Intelligence
+
+**NEW**: SA-AIHOS now treats Android OS signals as **sensory input** for AI cognition.
+
+### What This Means
+
+The AI is no longer isolated. It **perceives** its environment through:
+- **Battery state** (level, charging, low power mode)
+- **Network connectivity** (connected, disconnected, metered)
+- **Screen/lifecycle state** (visible, background, locked)
+- **Time of day** (morning, afternoon, evening, night)
+- **User activity level** (idle, light, active, intense)
+
+### How AI Behavior Changes
+
+| Environment | Reasoning | Reflection | Evolution | Visuals |
+|-------------|-----------|-----------|-----------|---------|
+| **Critical Battery** | ⚡ Fast, low-resource | 🔍 Minimal | 🚫 Blocked | 🌑 Dim, weak |
+| **Network Down** | 📱 Offline-only | 🤔 Quick | ⚠️ Conservative | 🔇 Muted |
+| **High Pressure** | 🛡️ Risk-averse | 📋 Tactical | ⚠️ Conservative | 📊 Subdued |
+| **Optimal Conditions** | 🚀 Exploratory | 🧠 Deep | ✅ Aggressive | ✨ Full intensity |
+| **User Intense** | 📌 High-confidence | 📋 Quick | 🚫 Blocked | 🌟 Bright, fast |
+| **Reflection Time** | 💡 Deep thinking | 🌙 Extended | ✅ Safe | 🔥 Warm, calm |
+
+### Visual Feedback
+
+The 3D core **reflects environmental pressure**:
+- 🔋 Low battery → Dim, weak pulse, dull surface
+- 🌐 No network → Muted colors, slower animation
+- 👤 User active → Bright, responsive, engaging
+- 🌙 Night time → Warm tones, calm breathing
+- ✅ Optimal → Full intensity, smooth, engaging
+
+### Documentation
+
+📖 **[ENVIRONMENT_AWARE_AI_DOCUMENTATION.md](ENVIRONMENT_AWARE_AI_DOCUMENTATION.md)** (1,200+ lines)
+- Complete signal flow and architecture
+- Integration examples
+- Extensibility patterns
+- Testing strategies
+
+📖 **[ENVIRONMENT_AWARE_AI_QUICKREF.md](ENVIRONMENT_AWARE_AI_QUICKREF.md)** (200+ lines)
+- Quick reference for developers
+- Configuration options
+- Debugging tips
+
+### Why This Matters
+
+**This is AI that understands context.** The system:
+- ✅ Learns aggressively when safe (charged, connected, user engaged)
+- ✅ Learns conservatively under pressure (low battery, network down)
+- ✅ Reflects deeply in calm moments, quickly during activity
+- ✅ Shows visual stress indicators (battery status reflected in core appearance)
+- ✅ Never attempts risky evolution in critical conditions
+
+**Privacy-First**: All signals are abstract environmental context. No personal data, no tracking, on-device processing only.
+
+---
+
+## �🎮 Interact with the AI
 
 ### Touch Gestures
 
@@ -1263,8 +1322,11 @@ Flagship (SD 8 Gen 2)  | 60    | 50 MB | HIGH (maximal fidelity)
 - [Reasoning Examples](docs/REASONING_EXAMPLES.md)
 - [Extension Guide](docs/EXTENSIONS.md)
 - [Interactive Design Guide](INTERACTION_DESIGN.md)
-- [Performance Optimization Guide](docs/PERFORMANCE_OPTIMIZATION.md) ⭐ NEW
+- [Performance Optimization Guide](docs/PERFORMANCE_OPTIMIZATION.md)
 - [AI Motion Intelligence](docs/AI_MOTION_INTELLIGENCE.md)
+- **[Filament 3D Integration Guide](FILAMENT_3D_INTEGRATION_GUIDE.md)** ⭐ NEW
+- **[Environment-Aware AI Documentation](ENVIRONMENT_AWARE_AI_DOCUMENTATION.md)** ⭐ NEW
+- **[Environment-Aware AI Quick Reference](ENVIRONMENT_AWARE_AI_QUICKREF.md)** ⭐ NEW
 
 ---
 
