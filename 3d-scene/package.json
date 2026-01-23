@@ -1,0 +1,47 @@
+{
+  "name": "sa-aihos-3d-scene",
+  "version": "1.0.0",
+  "description": "Ultra-advanced 3D animated UI for SA-AIHOS using Three.js",
+  "author": "SA-AIHOS Development Team",
+  "license": "MIT",
+  "main": "src/Scene.js",
+  "type": "module",
+  "scripts": {
+    "dev": "http-server . -p 8000 -c-1 -o",
+    "serve": "http-server . -p 8000",
+    "build": "echo 'No build step needed - uses ES6 modules'",
+    "test": "echo 'Add test suite'",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [
+    "ai",
+    "3d",
+    "visualization",
+    "three.js",
+    "webgl",
+    "android",
+    "futuristic",
+    "interactive"
+  ],
+  "dependencies": {
+    "three": "^r128"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "http-server": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Amank326/SELF-EVOLVING-AUTONOMOUS-AI-HUMAN-OS-SA-AIHOS-.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Amank326/SELF-EVOLVING-AUTONOMOUS-AI-HUMAN-OS-SA-AIHOS-/issues"
+  },
+  "documentation": {
+    "architecture": "./3D_ARCHITECTURE.md",
+    "quickStart": "./3D_QUICK_START.md"
+  }
+}

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SA-AIHOS - 3D AI Core Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #00ff88;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Overlay UI */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .overlay.interactive {
+            pointer-events: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #00ffaa;
+            opacity: 0.7;
+        }
+
+        .metrics {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(10, 14, 39, 0.8);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #00ff88;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            color: #00ffaa;
+        }
+
+        .metric-value {
+            color: #00ff88;
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(10, 14, 39, 0.8);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            max-width: 300px;
+        }
+
+        button {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        button:hover {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        button.active {
+            background: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.8);
+        }
+
+        input[type="range"] {
+            width: 150px;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(0, 255, 136, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 255, 136, 0.8);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 5px rgba(0, 255, 136, 0.8);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #00ff88;
+            z-index: 100;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top: 3px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(10, 14, 39, 0.8);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 12px;
+            color: #00ff88;
+        }
+
+        .status.error {
+            border-color: #ff0055;
+            color: #ff0055;
+        }
+
+        .status.success {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls {
+                max-width: 100%;
+            }
+
+            .metrics {
+                font-size: 10px;
+                padding: 10px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Initializing AI Core...</p>
+    </div>
+
+    <!-- Status -->
+    <div class="status" id="status">
+        <span id="status-text">Loading...</span>
+    </div>
+
+    <!-- Header -->
+    <div class="overlay">
+        <div class="header">
+            <div class="title">SA-AIHOS</div>
+            <div class="subtitle">Self-Evolving Autonomous AI-Human OS</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls interactive">
+        <button id="pauseBtn" onclick="togglePause()">Pause</button>
+        <button id="themeBtn" onclick="cycleTheme()">Theme</button>
+        <label>
+            Intensity:
+            <input type="range" id="intensitySlider" min="0" max="1" step="0.1" value="1" onchange="updateIntensity()">
+        </label>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics" id="metrics">
+        <div class="metric-item">
+            <span class="metric-label">FPS:</span>
+            <span class="metric-value" id="fps">60</span>
+        </div>
+        <div class="metric-item">
+            <span class="metric-label">Objects:</span>
+            <span class="metric-value" id="objects">0</span>
+        </div>
+        <div class="metric-item">
+            <span class="metric-label">Theme:</span>
+            <span class="metric-value" id="theme">Cyan</span>
+        </div>
+        <div class="metric-item">
+            <span class="metric-label">Status:</span>
+            <span class="metric-value" id="scene-status">Initializing...</span>
+        </div>
+    </div>
+
+    <!-- Three.js Scene Script -->
+    <script>
+        // Global scene instance
+        let scene = null;
+        let currentTheme = 'cyan';
+        let isPaused = false;
+        let lastFrameTime = Date.now();
+        let frameCount = 0;
+
+        /**
+         * Initialize the 3D scene
+         */
+        async function initScene() {
+            try {
+                // Import Scene
+                const { SAIHOSScene } = await import('./src/Scene.js');
+
+                // Create and initialize scene
+                scene = new SAIHOSScene('#canvas-container');
+                window.SAIHOSSceneInstance = scene;
+
+                await scene.initialize();
+
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                updateStatus('Scene initialized', 'success');
+
+                // Start metrics update loop
+                updateMetrics();
+            } catch (error) {
+                console.error('Initialization failed:', error);
+                updateStatus('Initialization failed: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Update metrics display
+         */
+        function updateMetrics() {
+            if (!scene || !scene.isInitialized) {
+                requestAnimationFrame(updateMetrics);
+                return;
+            }
+
+            const now = Date.now();
+            const deltaTime = (now - lastFrameTime) / 1000;
+            lastFrameTime = now;
+            frameCount++;
+
+            const metrics = scene.getMetrics();
+            const fps = Math.round(1 / (deltaTime || 0.016));
+
+            document.getElementById('fps').textContent = fps;
+            document.getElementById('objects').textContent = metrics.sceneObjectCount;
+            document.getElementById('theme').textContent = currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1);
+            document.getElementById('scene-status').textContent = isPaused ? 'Paused' : 'Playing';
+
+            requestAnimationFrame(updateMetrics);
+        }
+
+        /**
+         * Toggle pause/play
+         */
+        function togglePause() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                scene.pause();
+                document.getElementById('pauseBtn').textContent = 'Resume';
+                document.getElementById('pauseBtn').classList.add('active');
+            } else {
+                scene.resume();
+                document.getElementById('pauseBtn').textContent = 'Pause';
+                document.getElementById('pauseBtn').classList.remove('active');
+            }
+        }
+
+        /**
+         * Cycle theme
+         */
+        function cycleTheme() {
+            const themes = ['cyan', 'purple', 'red', 'blue'];
+            const currentIndex = themes.indexOf(currentTheme);
+            currentTheme = themes[(currentIndex + 1) % themes.length];
+            scene.setColorTheme(currentTheme);
+        }
+
+        /**
+         * Update animation intensity
+         */
+        function updateIntensity() {
+            const slider = document.getElementById('intensitySlider');
+            const intensity = parseFloat(slider.value);
+            scene.setAnimationIntensity(intensity);
+        }
+
+        /**
+         * Update status message
+         */
+        function updateStatus(message, type = 'default') {
+            const statusEl = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+
+            statusText.textContent = message;
+            statusEl.className = 'status ' + type;
+
+            if (type !== 'error') {
+                setTimeout(() => {
+                    statusEl.className = 'status';
+                }, 3000);
+            }
+        }
+
+        /**
+         * Handle window unload
+         */
+        window.addEventListener('beforeunload', () => {
+            if (scene) {
+                scene.dispose();
+            }
+        });
+
+        // Start initialization when DOM is ready
+        document.addEventListener('DOMContentLoaded', initScene);
+    </script>
+</body>
+</html>
