@@ -1,0 +1,55 @@
+# Android
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+build/
+captures/
+.gradle/
+local.properties
+*.iml
+.idea/
+*.swp
+*.swo
+*~
+.classpath
+.project
+.settings/
+.DS_Store
+*.log
+*.log.*
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Build outputs
+.externalNativeBuild/
+.cxx/
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Node (if applicable)
+node_modules/
+package-lock.json
+yarn.lock
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Kotlin
+out/
+*.kt.bak
