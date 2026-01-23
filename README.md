@@ -9,6 +9,20 @@
 
 ---
 
+### 🚀 **Quick Start (Choose Your Path)**
+
+| I want to... | Start here |
+|--------------|-----------|
+| **See a demo** | [DEMO_GUIDE.md](DEMO_GUIDE.md) — 3-minute script with talking points |
+| **Understand the vision** | [Project Vision](#-project-vision) below |
+| **Learn about use cases** | [USE_CASES.md](USE_CASES.md) — Real-world applications |
+| **Explain in an interview** | [How to Explain](#-how-to-explain-this-project-in-interviews) section below |
+| **Understand the research** | [SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) — Full formalization |
+| **Get started coding** | [QUICK_START.md](docs/QUICK_START.md) — Setup & build |
+| **Find everything** | [RESEARCH_INDEX.md](RESEARCH_INDEX.md) — Master index |
+
+---
+
 ## 🎮 **INTERACTIVE 3D INTERFACE: The Living AI Consciousness**
 
 Your touch controls the visualization. The AI responds to your interaction. **This is not a decoration—it's an interface.**
@@ -59,6 +73,44 @@ This is a **research-grade** AI system designed to explore:
 - The psychology of human-AI interaction
 - **Visual representation of AI cognition** ✨
 - **Interactive human-AI interfaces** 🎮 (NEW!)
+
+---
+
+## 🎬 How to Demo This Project
+
+**Want to show SA-AIHOS to recruiters, judges, or investors?**
+
+**Start here:** [DEMO_GUIDE.md](DEMO_GUIDE.md)
+
+**The 3-minute demo shows:**
+1. **The autonomous loop** in action (Think → Act → Reflect → Evolve)
+2. **Real-time visualization** of AI cognitive states
+3. **Interactive control** through 6 gesture types
+4. **Observable learning** as the AI improves from interaction
+
+**Demo script, gesture guide, troubleshooting, and audience-specific variations included.**
+
+---
+
+## 💼 How to Explain This Project in Interviews
+
+**Not sure how to describe SA-AIHOS to a recruiter or hiring manager?**
+
+**Use these framings:**
+
+### "The Elevator Pitch" (30 seconds)
+> "SA-AIHOS is a self-evolving AI that makes its thinking visible through real-time 3D animation. Unlike ChatGPT, it runs device-local and learns from your interactions. Think 'transparent, observable, trustworthy AI.'"
+
+### "For Engineers" (1 minute)
+> "It's a Kotlin + JavaScript system combining autonomous learning with procedural animation. The AI runs a reflection loop: observe outcome → analyze causality → adapt weights. Real-time gesture interaction with sub-100ms latency. Everything computed live, nothing keyframed. Fits in <50MB memory, runs at 60 FPS."
+
+### "For Product Managers" (1 minute)
+> "This demonstrates a new category of AI: systems that are observable, learnable, and interactive. The core insight is that AI that makes its thinking visible creates trust and improves learning. Use cases: transparent hiring AI, observable medical diagnosis, trustworthy autonomous systems, personalized education. The architecture is modular so it can be adapted to different domains."
+
+### "For Investors/Business" (1 minute)
+> "SA-AIHOS is a research foundation + proof-of-concept for transparent AI. The TAM includes every system where trust in AI matters: healthcare, hiring, autonomous systems, education. The research value is strong (enables papers across 6+ disciplines). The product value is in showing that observable AI is feasible and desirable. MIT-licensed open source, ready to customize for commercial applications."
+
+**Full guide with Q&A:** [USE_CASES.md](USE_CASES.md)
 
 ---
 
