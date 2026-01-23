@@ -14,6 +14,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@r128/build/three.module.js';
 import { AICore } from './components/AICore.js';
 import { AnimationController } from './animations/AnimationController.js';
+import { ProceduralAnimationController } from './animations/ProceduralAnimationController.js';
+import { AIResponsiveComponentManager } from './components/AIResponsiveComponentManager.js';
 import { LightingSystem } from './lighting/LightingSystem.js';
 import { EffectsManager } from './effects/EffectsManager.js';
 import { AndroidBridge } from './bridge/AndroidBridge.js';
@@ -33,6 +35,8 @@ export class SAIHOSScene {
     // Components
     this.aiCore = null;
     this.animationController = null;
+    this.proceduralAnimationController = null;
+    this.componentManager = null;
     this.lightingSystem = null;
     this.effectsManager = null;
 
@@ -98,6 +102,22 @@ export class SAIHOSScene {
       this.animationController = new AnimationController();
       this.animationController.registerAnimatable(this.aiCore);
       this.animationController.registerAnimatable(this.lightingSystem);
+
+      // Initialize AI-driven procedural animation system
+      this.proceduralAnimationController = new ProceduralAnimationController();
+      
+      // Initialize component manager to apply animations to 3D objects
+      this.componentManager = new AIResponsiveComponentManager(
+        this.scene,
+        this.aiCore,
+        this.lightingSystem,
+        this.effectsManager
+      );
+      
+      // Wire procedural controller to component manager
+      this.proceduralAnimationController.registerAnimatable({
+        updateAnimation: (frame) => this.componentManager.applyAnimationFrame(frame)
+      });
 
       // Setup event listeners
       this._setupEventListeners();
@@ -208,7 +228,12 @@ export class SAIHOSScene {
     this.deltaTime = (now - this.lastFrameTime) / 1000;
     this.lastFrameTime = now;
 
-    // Update animations
+    // Update PROCEDURAL animations based on AI state
+    if (this.proceduralAnimationController) {
+      this.proceduralAnimationController.update(this.deltaTime);
+    }
+
+    // Update traditional animations (fallback)
     if (this.animationController) {
       this.animationController.update(this.deltaTime);
     }
@@ -327,6 +352,49 @@ export class SAIHOSScene {
   /**
    * Dispose of all resources
    */
+  /**
+   * Receive AI motion state from Android
+   * This is the primary method that drives procedural animations
+   */
+  setAIMotionState(aiMotionStateJson) {
+    try {
+      const aiState = typeof aiMotionStateJson === 'string' 
+        ? JSON.parse(aiMotionStateJson)
+        : aiMotionStateJson;
+      
+      console.log('[SA-AIHOS 3D] Received AI motion state:', aiState.primaryState);
+      
+      // Pass AI state to procedural animation controller
+      if (this.proceduralAnimationController) {
+        this.proceduralAnimationController.setAIMotionState(aiState);
+      }
+      
+      // Log for debugging
+      console.debug('AI Metrics:', {
+        state: aiState.primaryState,
+        confidence: aiState.confidence.averageConfidence.toFixed(2),
+        load: aiState.processing.cognitiveLoad.toFixed(2),
+        breathing: aiState.breathingRate.toFixed(2),
+        rotation: aiState.rotationSpeed.toFixed(2)
+      });
+    } catch (error) {
+      console.error('[SA-AIHOS 3D] Error setting AI motion state:', error);
+      this.bridge.notifyError('ai_state_error', error.message);
+    }
+  }
+
+  /**
+   * Get current animation metrics for display/debugging
+   */
+  getAnimationMetrics() {
+    return {
+      elapsedTime: this.proceduralAnimationController?.elapsedTime || 0,
+      frameCount: this.frameCount,
+      currentAIState: this.proceduralAnimationController?.aiMotionState?.primaryState || 'IDLE',
+      fps: this.calculateFPS(),
+    };
+  }
+
   dispose() {
     console.log('[SA-AIHOS 3D] Disposing scene...');
 

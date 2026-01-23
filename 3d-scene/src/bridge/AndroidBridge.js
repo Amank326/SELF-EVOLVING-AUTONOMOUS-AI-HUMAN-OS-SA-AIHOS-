@@ -51,7 +51,7 @@ export class AndroidBridge {
   handleAndroidMessage(messageStr) {
     try {
       const message = JSON.parse(messageStr);
-      console.log('[AndroidBridge] Received from Android:', message);
+      console.log('[AndroidBridge] Received from Android:', message.method);
 
       const { method, data } = message;
 
@@ -60,6 +60,9 @@ export class AndroidBridge {
         this.scene.setColorTheme(data.themeId);
       } else if (method === 'setAnimationIntensity') {
         this.scene.setAnimationIntensity(data.intensity);
+      } else if (method === 'setAIMotionState') {
+        // AI-DRIVEN ANIMATION: Receive AI state and drive procedural animations
+        this.scene.setAIMotionState(data);
       } else if (method === 'getMetrics') {
         const metrics = this.scene.getMetrics();
         this.sendToAndroid('metricsUpdate', metrics);
@@ -137,6 +140,17 @@ export class AndroidBridge {
    */
   notifyMetrics(metrics) {
     this.sendToAndroid('metrics', metrics);
+  }
+
+  /**
+   * Receive AI motion state from Android and apply to 3D scene
+   * Called by Kotlin AIStateBroadcaster
+   */
+  receiveAIMotionState(aiMotionStateJson) {
+    // Pass to scene if available
+    if (this.scene && this.scene.setAIMotionState) {
+      this.scene.setAIMotionState(aiMotionStateJson);
+    }
   }
 
   /**
