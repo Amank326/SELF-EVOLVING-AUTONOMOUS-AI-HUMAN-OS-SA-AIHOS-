@@ -6,6 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +29,7 @@ import com.aihos.ui.screens.DashboardScreen
 import com.aihos.ui.screens.EvolutionScreen
 import com.aihos.ui.screens.MemoryScreen
 import com.aihos.ui.screens.SettingsScreen
+import com.aihos.ui.screens.AICore3DScreen
 import com.aihos.ui.viewmodel.SAIHOSViewModel
 import timber.log.Timber
 
@@ -72,6 +76,10 @@ fun SAIHOSApp() {
                 
                 composable("evolution") {
                     EvolutionScreen(viewModel = viewModel)
+                }
+                
+                composable("ai_core_3d") {
+                    AICore3DScreen(viewModel = viewModel)
                 }
                 
                 composable("settings") {
@@ -195,27 +203,34 @@ fun AIStateStatusBar(
 fun SAIHOSNavigationBar(navController: NavController) {
     NavigationBar(
         containerColor = Color(0xFF1F1F1F),
-        modifier = Modifier.height(64.dp)
+        modifier = Modifier.height(80.dp)
     ) {
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Dashboard") },
+            icon = { Icon(Icons.Default.Home, contentDescription = "Dashboard") },
             label = { Text("Dashboard", fontSize = 10.sp) },
             selected = false,
             onClick = { navController.navigate("dashboard") }
         )
         
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Memory") },
+            icon = { Icon(Icons.Default.Psychology, contentDescription = "Memory") },
             label = { Text("Memory", fontSize = 10.sp) },
             selected = false,
             onClick = { navController.navigate("memory") }
         )
         
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Evolution") },
+            icon = { Icon(Icons.Default.DataObject, contentDescription = "Evolution") },
             label = { Text("Evolution", fontSize = 10.sp) },
             selected = false,
             onClick = { navController.navigate("evolution") }
+        )
+        
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Psychology, contentDescription = "AI Core 3D") },
+            label = { Text("AI Core", fontSize = 10.sp) },
+            selected = false,
+            onClick = { navController.navigate("ai_core_3d") }
         )
         
         NavigationBarItem(

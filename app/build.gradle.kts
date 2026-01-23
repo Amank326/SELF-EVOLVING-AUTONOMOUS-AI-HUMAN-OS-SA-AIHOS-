@@ -18,6 +18,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        // NDK configuration for Filament native rendering
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
     }
 
     buildTypes {
@@ -110,6 +115,15 @@ dependencies {
 
     // Local LLM Support (ONNX for mobile AI)
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.16.3")
+
+    // Filament for Native 3D Rendering
+    // Using Filament 1.51.x - stable release with excellent Android support
+    implementation("com.google.android.filament:filament-android:1.51.6")
+    implementation("com.google.android.filament:filament-utils-android:1.51.6")
+    implementation("com.google.android.filament:gltfio-android:1.51.6")
+    
+    // Kotlin coroutine support for Filament rendering thread
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
