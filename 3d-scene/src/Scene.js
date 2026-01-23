@@ -21,6 +21,9 @@ import { GestureAnimationEngine } from './animations/GestureAnimationEngine.js';
 import { LightingSystem } from './lighting/LightingSystem.js';
 import { EffectsManager } from './effects/EffectsManager.js';
 import { AndroidBridge } from './bridge/AndroidBridge.js';
+import { QualityManager } from './performance/QualityManager.js';
+import { LifecycleManager } from './performance/LifecycleManager.js';
+import { PerformanceMonitor } from './performance/PerformanceMonitor.js';
 
 export class SAIHOSScene {
   constructor(containerSelector = '#canvas-container') {
@@ -43,6 +46,11 @@ export class SAIHOSScene {
     this.gestureAnimationEngine = null;
     this.lightingSystem = null;
     this.effectsManager = null;
+
+    // Performance management (NEW)
+    this.qualityManager = null;
+    this.lifecycleManager = null;
+    this.performanceMonitor = null;
 
     // State
     this.isAnimating = true;
@@ -125,6 +133,31 @@ export class SAIHOSScene {
       // Wire procedural controller to component manager
       this.proceduralAnimationController.registerAnimatable({
         updateAnimation: (frame) => this.componentManager.applyAnimationFrame(frame)
+      });
+
+      // Initialize performance management systems (NEW)
+      this.qualityManager = new QualityManager(this.renderer, this.scene);
+      this.qualityManager.initialize();
+
+      this.lifecycleManager = new LifecycleManager(this);
+      this.lifecycleManager.initialize();
+
+      this.performanceMonitor = new PerformanceMonitor(this.renderer);
+
+      // Setup quality change listener
+      window.addEventListener('qualityChange', (e) => {
+        console.log(`[SA-AIHOS 3D] Quality changed to ${e.detail.level}`);
+      });
+
+      // Setup lifecycle handlers (NEW)
+      this.lifecycleManager.onPause(() => {
+        this.pause();
+        console.log('[SA-AIHOS 3D] Paused by lifecycle');
+      });
+
+      this.lifecycleManager.onResume(() => {
+        this.resume();
+        console.log('[SA-AIHOS 3D] Resumed by lifecycle');
       });
 
       // Setup event listeners
@@ -254,7 +287,8 @@ export class SAIHOSScene {
   }
 
   /**
-   * Render loop
+   * Render loop - OPTIMIZED for mobile
+   * Batches updates, monitors performance, adapts quality
    */
   render() {
     if (!this.isAnimating) return;
@@ -262,6 +296,11 @@ export class SAIHOSScene {
     const now = Date.now();
     this.deltaTime = (now - this.lastFrameTime) / 1000;
     this.lastFrameTime = now;
+
+    // Record performance metrics
+    if (this.performanceMonitor) {
+      this.performanceMonitor.recordFrame(this.deltaTime);
+    }
 
     // Update PROCEDURAL animations based on AI state
     if (this.proceduralAnimationController) {
@@ -273,7 +312,7 @@ export class SAIHOSScene {
       this.interactionResponsiveController.update(this.deltaTime);
     }
 
-    // Update gesture effects
+    // Update gesture effects (with quality adaptation)
     if (this.gestureAnimationEngine) {
       this.gestureAnimationEngine.computeEffects(this.deltaTime);
     }
@@ -296,7 +335,7 @@ export class SAIHOSScene {
     // Update camera orbit
     this._updateCameraOrbit(this.deltaTime);
 
-    // Render
+    // Render scene
     this.renderer.render(this.scene, this.camera);
 
     this.frameCount++;
@@ -489,10 +528,13 @@ export class SAIHOSScene {
 
   /**
    * Get current animation metrics for display/debugging
+   * ENHANCED: Includes quality and performance metrics
    */
   getAnimationMetrics() {
     const interactionMetrics = this.interactionResponsiveController?.getMetrics() || {};
     const gestureMetrics = this.gestureAnimationEngine?.getMetrics() || {};
+    const qualityMetrics = this.qualityManager?.getMetrics() || {};
+    const performanceMetrics = this.performanceMonitor?.getMetrics() || {};
     
     return {
       elapsedTime: this.proceduralAnimationController?.elapsedTime || 0,
@@ -500,12 +542,19 @@ export class SAIHOSScene {
       currentAIState: this.proceduralAnimationController?.aiMotionState?.primaryState || 'IDLE',
       interaction: interactionMetrics,
       gesture: gestureMetrics,
+      quality: qualityMetrics,
+      performance: performanceMetrics,
       fps: this.calculateFPS(),
     };
   }
 
   dispose() {
     console.log('[SA-AIHOS 3D] Disposing scene...');
+
+    // Lifecycle cleanup
+    if (this.lifecycleManager) {
+      this.lifecycleManager.destroy();
+    }
 
     window.removeEventListener('resize', this.onWindowResize);
 

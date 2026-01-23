@@ -3,6 +3,12 @@
  * Implements procedural animations for different gesture types
  * Applies gesture effects on top of base AI-driven animations
  * 
+ * OPTIMIZED FOR MOBILE:
+ * - Object pooling for effect instances
+ * - Capped effect count (max 6 simultaneous)
+ * - Efficient effect accumulation
+ * - Memory-friendly computations
+ * 
  * Effects:
  * - TAP: Quick pulse/spark
  * - LONG_PRESS: Deep reflection mode (dimmed, slow)
@@ -13,102 +19,140 @@
  * 
  * All effects are procedural (not keyframe-based)
  */
+import { EasingFunctions } from './EasingFunctions.js';
+
 export class GestureAnimationEngine {
   constructor() {
     this.activeEffects = [];
     this.reflectionMode = false;
     this.reflectionIntensity = 0;
     
-    console.log('[GestureAnimationEngine] Initialized');
+    // Object pooling for effect instances
+    this.effectPool = [];
+    this.maxPoolSize = 10;
+    this.maxConcurrentEffects = 6;  // Limit simultaneous effects for performance
+    
+    // Track last effect time to prevent spam
+    this.lastEffectTime = 0;
+    this.effectDebounce = 50;  // Min 50ms between effect triggers
+    
+    console.log('[GestureAnimationEngine] Initialized (optimized for mobile)');
+  }
+
+  /**
+   * Get effect from pool or create new
+   */
+  _getEffect() {
+    if (this.effectPool.length > 0) {
+      return this.effectPool.pop();
+    }
+    return {};
+  }
+
+  /**
+   * Return effect to pool
+   */
+  _returnEffect(effect) {
+    if (this.effectPool.length < this.maxPoolSize) {
+      this.effectPool.push(effect);
+    }
+  }
+
+  /**
+   * Check if effect can be triggered (debounce)
+   */
+  _canTriggerEffect() {
+    const now = Date.now();
+    if (now - this.lastEffectTime < this.effectDebounce) {
+      return false;
+    }
+    this.lastEffectTime = now;
+    return true;
+  }
+
+  /**
+   * Manage effect limit
+   */
+  _enforceEffectLimit() {
+    // Remove oldest effects if exceeding limit
+    while (this.activeEffects.length > this.maxConcurrentEffects) {
+      const oldest = this.activeEffects.shift();
+      this._returnEffect(oldest);
+    }
   }
 
   /**
    * Apply tap effect
    * Creates quick energy pulse with bright flash
+   * OPTIMIZED: Uses easing, object pooling, debouncing
    */
   applyTapEffect(location, targetMesh) {
-    const effect = {
-      type: 'tap',
-      startTime: Date.now(),
-      duration: 300,
-      location: { ...location },
+    if (!this._canTriggerEffect()) return;
+
+    const effect = this._getEffect();
+    const duration = 300;
+    
+    effect.type = 'tap';
+    effect.startTime = Date.now();
+    effect.duration = duration;
+    effect.location = { ...location };
+    
+    effect.compute = (elapsed) => {
+      const progress = Math.min(elapsed / duration, 1);
+      // Use cubic easing for smoother feel
+      const easeOut = EasingFunctions.easeOutCubic(1 - progress);
       
-      compute: (elapsed) => {
-        const progress = elapsed / this.duration;  // 0 to 1
-        const easeOut = 1 - (progress * progress);
-        
-        return {
-          // Create brief glow spike
-          glowIntensity: easeOut * 0.5,
-          
-          // Quick pulse outward
-          pulseScale: 1 + easeOut * 0.1,
-          
-          // Particle burst
-          particleEmissionBurst: Math.max(0, (1 - progress) * 3),
-          
-          // Flash color (white → original color)
-          colorInfluence: progress,
-        };
-      },
+      return {
+        glowIntensity: easeOut * 0.5,
+        pulseScale: 1 + easeOut * 0.1,
+        particleEmissionBurst: Math.max(0, easeOut * 3),
+        colorInfluence: progress,
+      };
     };
 
     this.activeEffects.push(effect);
-    console.log('[GestureEngine] TAP effect at', location);
+    this._enforceEffectLimit();
   }
 
   /**
    * Apply long-press reflection mode
    * Deep, contemplative animation state
-   * - Slower breathing
-   * - Dimmed lights
-   * - Inward-focused particles
-   * - Blue/purple coloration
+   * OPTIMIZED: Smooth sine easing, efficient computation
    */
   activateReflectionMode(duration = 2000) {
-    this.reflectionMode = true;
+    if (this.reflectionMode) return;  // Already active
     
-    const effect = {
-      type: 'reflection',
-      startTime: Date.now(),
-      duration: duration,
+    this.reflectionMode = true;
+    const effect = this._getEffect();
+    
+    effect.type = 'reflection';
+    effect.startTime = Date.now();
+    effect.duration = duration;
+    
+    effect.compute = (elapsed) => {
+      const progress = Math.min(elapsed / duration, 1);
+      // Smooth sine pulse for contemplative feel
+      const pulse = Math.sin(progress * Math.PI) * 0.5 + 0.5;
       
-      compute: (elapsed) => {
-        const progress = Math.min(elapsed / duration, 1);
-        const pulse = Math.sin(elapsed * Math.PI / duration) * 0.5 + 0.5;  // Sinewave pulse
-        
-        return {
-          // Slow breathing pulse
-          breathingModifier: 0.3,  // 0.3x normal rate
-          breathingIntensity: 0.8,
-          
-          // Deep blue/purple tones
-          colorShift: {
-            r: 0.3,  // Reduce red
-            g: 0.5,  // Moderate green
-            b: 1.0,  // Boost blue
-          },
-          
-          // Dimmed lighting for introspection
-          lightingDimFactor: 0.6,
-          primaryLightIntensity: 0.4,
-          
-          // Inward-converging particles
-          particlePattern: 'converging',
-          particleEmissionRate: 0.5,
-          
-          // Slow rotation
-          rotationVelocityModifier: 0.2,
-          
-          // Pulsing glow
-          glowIntensity: 0.6 + pulse * 0.3,
-        };
-      },
+      return {
+        breathingModifier: 0.3,
+        breathingIntensity: 0.8,
+        colorShift: {
+          r: 0.3,
+          g: 0.5,
+          b: 1.0,
+        },
+        lightingDimFactor: 0.6,
+        primaryLightIntensity: 0.4,
+        particlePattern: 'converging',
+        particleEmissionRate: 0.5,
+        rotationVelocityModifier: 0.2,
+        glowIntensity: 0.6 + pulse * 0.3,
+      };
     };
 
     this.activeEffects.push(effect);
     this.reflectionIntensity = 1.0;
-    console.log('[GestureEngine] REFLECTION mode activated');
   }
 
   /**
@@ -126,38 +170,38 @@ export class GestureAnimationEngine {
   /**
    * Apply swipe effect
    * Creates flowing particle stream in swipe direction
+   * OPTIMIZED: Better easing, object pooling
    */
   applySweepEffect(direction, intensity) {
-    const effect = {
-      type: 'swipe',
-      startTime: Date.now(),
-      duration: 800,
-      direction: { ...direction },
-      initialIntensity: intensity,
+    if (!this._canTriggerEffect()) return;
+
+    const effect = this._getEffect();
+    const duration = 800;
+    
+    effect.type = 'swipe';
+    effect.startTime = Date.now();
+    effect.duration = duration;
+    effect.direction = { ...direction };
+    effect.initialIntensity = intensity;
+    
+    effect.compute = (elapsed) => {
+      const progress = Math.min(elapsed / duration, 1);
+      // Out-quart for flowing feel
+      const easeOut = EasingFunctions.easeOutQuart(1 - progress);
       
-      compute: (elapsed) => {
-        const progress = elapsed / this.duration;
-        const easeOut = 1 - (progress * progress);
-        
-        return {
-          // Particle flow in gesture direction
-          particlePattern: 'streaming',
-          particleDirection: direction,
-          particleEmissionRate: 2 * easeOut,
-          particleSpeed: 2,
-          
-          // Trailing glow
-          glowIntensity: 0.3 + easeOut * 0.3,
-          
-          // Light trails
-          lightTrailColor: { r: 0.5, g: 0.8, b: 1.0 },
-          lightTrailIntensity: easeOut * 0.5,
-        };
-      },
+      return {
+        particlePattern: 'streaming',
+        particleDirection: direction,
+        particleEmissionRate: 2 * easeOut,
+        particleSpeed: 2,
+        glowIntensity: 0.3 + easeOut * 0.3,
+        lightTrailColor: { r: 0.5, g: 0.8, b: 1.0 },
+        lightTrailIntensity: easeOut * 0.5,
+      };
     };
 
     this.activeEffects.push(effect);
-    console.log('[GestureEngine] SWIPE effect in direction', direction);
+    this._enforceEffectLimit();
   }
 
   /**
@@ -237,43 +281,41 @@ export class GestureAnimationEngine {
   /**
    * Apply double-tap burst effect
    * Explosive particle burst from center
+   * OPTIMIZED: Cubic easing, object pooling
    */
   applyDoubleTabEffect() {
-    const effect = {
-      type: 'burst',
-      startTime: Date.now(),
-      duration: 600,
+    if (!this._canTriggerEffect()) return;
+
+    const effect = this._getEffect();
+    const duration = 600;
+    
+    effect.type = 'burst';
+    effect.startTime = Date.now();
+    effect.duration = duration;
+    
+    effect.compute = (elapsed) => {
+      const progress = Math.min(elapsed / duration, 1);
+      // Cubic ease-out for impact feel
+      const easeOut = EasingFunctions.easeOutCubic(1 - progress);
       
-      compute: (elapsed) => {
-        const progress = elapsed / this.duration;
-        const easeOut = 1 - (progress * progress * progress);  // Cubic ease-out
-        
-        return {
-          // Explosive color flash
-          colorFlash: {
-            r: 1.0,
-            g: 0.8,
-            b: 0.3,
-          },
-          flashIntensity: easeOut,
-          
-          // Burst particles outward
-          particlePattern: 'bursting',
-          particleEmissionRate: 4 * easeOut,
-          particleSpeed: 3,
-          burstRadius: 1.5,
-          
-          // Shock wave
-          meshScaleModifier: 1 + easeOut * 0.2,
-          
-          // Bright glow
-          glowIntensity: 0.8 + easeOut * 0.5,
-        };
-      },
+      return {
+        colorFlash: {
+          r: 1.0,
+          g: 0.8,
+          b: 0.3,
+        },
+        flashIntensity: easeOut,
+        particlePattern: 'bursting',
+        particleEmissionRate: 4 * easeOut,
+        particleSpeed: 3,
+        burstRadius: 1.5,
+        meshScaleModifier: 1 + easeOut * 0.2,
+        glowIntensity: 0.8 + easeOut * 0.5,
+      };
     };
 
     this.activeEffects.push(effect);
-    console.log('[GestureEngine] DOUBLE_TAP burst effect');
+    this._enforceEffectLimit();
   }
 
   /**
