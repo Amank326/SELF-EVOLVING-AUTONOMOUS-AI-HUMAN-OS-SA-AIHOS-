@@ -1,172 +1,171 @@
 package com.aihos.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.aihos.ai.AISystemController
 import com.aihos.ai.autonomy.AutonomyController
-import com.aihos.ai.autonomy.AutonomyLevel
 import com.aihos.ai.evolution.EvolutionEngine
-import com.aihos.ai.memory.MemoryRepository
+import com.aihos.ai.memory.MemorySystem
+import com.aihos.ai.reasoning.ReasoningEngine
 import com.aihos.ai.reflection.ReflectionEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharedFlow
 import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Main ViewModel for the Android UI
- * Bridges between Compose UI and AI systems
+ * SA-AIHOS ViewModel (Refactored)
+ *
+ * Wraps AISystemController for safe UI consumption.
+ *
+ * Responsibilities:
+ * - Initialize and manage AI system lifecycle
+ * - Expose AI state as Flows for UI to observe
+ * - Handle lifecycle events (onCleared)
+ * - Safe coroutine scope management
+ *
+ * This is the interface between the AI system and the UI layer.
+ * UI never touches AISystemController directly; all state comes through here.
  */
 @HiltViewModel
 class SAIHOSViewModel @Inject constructor(
-    private val autonomyController: AutonomyController,
-    private val memoryRepository: MemoryRepository,
+    application: Application,
+    private val reasoningEngine: ReasoningEngine,
     private val reflectionEngine: ReflectionEngine,
-    private val evolutionEngine: EvolutionEngine
-) : ViewModel() {
-    
-    // UI State
-    private val _autonomyLevel = MutableStateFlow(AutonomyLevel.CONSTRAINED)
-    val autonomyLevel: StateFlow<AutonomyLevel> = _autonomyLevel.asStateFlow()
-    
-    private val _systemStatus = MutableStateFlow<SystemStatus>(SystemStatus.Idle)
-    val systemStatus: StateFlow<SystemStatus> = _systemStatus.asStateFlow()
-    
-    private val _recentDecisions = MutableStateFlow<List<DecisionDisplay>>(emptyList())
-    val recentDecisions: StateFlow<List<DecisionDisplay>> = _recentDecisions.asStateFlow()
-    
-    private val _memoryStats = MutableStateFlow<MemoryStatsDisplay>(MemoryStatsDisplay())
-    val memoryStats: StateFlow<MemoryStatsDisplay> = _memoryStats.asStateFlow()
-    
-    private val _evolutionReport = MutableStateFlow<EvolutionReportDisplay>(EvolutionReportDisplay())
-    val evolutionReport: StateFlow<EvolutionReportDisplay> = _evolutionReport.asStateFlow()
-    
-    init {
-        Timber.d("SAIHOSViewModel initialized")
-        loadInitialData()
+    private val evolutionEngine: EvolutionEngine,
+    private val memorySystem: MemorySystem,
+    private val autonomyController: AutonomyController
+) : AndroidViewModel(application) {
+
+    // AI System Controller instance
+    private val aiSystemController = AISystemController(
+        context = application.applicationContext,
+        reasoningEngine = reasoningEngine,
+        reflectionEngine = reflectionEngine,
+        evolutionEngine = evolutionEngine,
+        memorySystem = memorySystem,
+        scope = viewModelScope
+    )
+
+    // ==================== PUBLIC STATE FLOWS ====================
+
+    /**
+     * Current AI state (Idle, Thinking, Acting, Reflecting, Evolving, Paused, Stopped, Error)
+     * UI subscribes to this to show AI status
+     */
+    val aiState: StateFlow<AISystemController.AIState> = aiSystemController.aiState
+
+    /**
+     * Current execution phase (for minimal indicator or animation)
+     */
+    val executionPhase: StateFlow<AISystemController.ExecutionPhase> = aiSystemController.executionPhase
+
+    /**
+     * Last made decision (for showing reasoning)
+     */
+    val lastDecision: StateFlow<AISystemController.CognitiveDecision?> = aiSystemController.lastDecision
+
+    /**
+     * Last reflection insight (for showing learning)
+     */
+    val lastInsight: StateFlow<AISystemController.ReflectionInsight?> = aiSystemController.lastInsight
+
+    /**
+     * Cycle performance metrics (for performance monitoring)
+     */
+    val cycleMetrics: StateFlow<AISystemController.CycleMetrics> = aiSystemController.cycleMetrics
+
+    /**
+     * Evolution events (for showing when rules change)
+     */
+    val evolutionEvents: SharedFlow<AISystemController.EvolutionEvent> = aiSystemController.evolutionEvents
+
+    // ==================== LIFECYCLE MANAGEMENT ====================
+
+    /**
+     * Start the AI system.
+     * Called from MainActivity onCreate or when app comes to foreground.
+     */
+    fun startAI() {
+        Timber.d("ViewModel: Starting AI system")
+        aiSystemController.start()
     }
-    
-    fun startAutonomousLoop() {
-        viewModelScope.launch {
-            _systemStatus.value = SystemStatus.Running
-            try {
-                autonomyController.startDecisionLoop()
-            } catch (e: Exception) {
-                Timber.e(e, "Error in autonomous loop")
-                _systemStatus.value = SystemStatus.Error(e.message ?: "Unknown error")
-            }
-        }
+
+    /**
+     * Pause the AI system (app going to background).
+     * State is preserved.
+     */
+    fun pauseAI() {
+        Timber.d("ViewModel: Pausing AI system")
+        aiSystemController.pause()
     }
-    
-    fun stopAutonomousLoop() {
-        viewModelScope.launch {
-            autonomyController.stopDecisionLoop()
-            _systemStatus.value = SystemStatus.Idle
-        }
+
+    /**
+     * Resume the AI system (app coming to foreground).
+     */
+    fun resumeAI() {
+        Timber.d("ViewModel: Resuming AI system")
+        aiSystemController.resume()
     }
-    
-    fun updateAutonomyLevel(level: AutonomyLevel) {
-        _autonomyLevel.value = level
-        val settings = autonomyController.getSettings().copy()
-        // TODO: Actually update settings with new level
-        autonomyController.updateSettings(settings)
-        Timber.i("Autonomy level changed to: $level")
+
+    /**
+     * Called automatically when ViewModel is destroyed (activity destroyed).
+     * Stops AI system and cleans up resources.
+     */
+    override fun onCleared() {
+        Timber.d("ViewModel: Cleared (destroying AI system)")
+        aiSystemController.stop()
+        super.onCleared()
     }
-    
-    fun refreshMemoryStats() {
-        viewModelScope.launch {
-            try {
-                val stats = memoryRepository.getMemoryStats()
-                _memoryStats.value = MemoryStatsDisplay(
-                    totalEpisodes = stats.totalEpisodes,
-                    totalRules = stats.totalRules,
-                    totalFacts = stats.totalFacts,
-                    memoryUsagePercent = (stats.memoryUsageBytes / 500_000_000.0 * 100).toInt()
-                )
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to refresh memory stats")
-            }
-        }
+
+    // ==================== UI STATE HELPERS ====================
+
+    /**
+     * Human-readable description of current AI state.
+     * Useful for status indicators.
+     */
+    fun getStateDescription(): String = when (aiState.value) {
+        AISystemController.AIState.Idle -> "Idle"
+        AISystemController.AIState.Initializing -> "Initializing..."
+        AISystemController.AIState.Thinking -> "Thinking"
+        AISystemController.AIState.Acting -> "Acting"
+        AISystemController.AIState.Reflecting -> "Reflecting"
+        AISystemController.AIState.Evolving -> "Evolving"
+        AISystemController.AIState.Paused -> "Paused"
+        AISystemController.AIState.Stopped -> "Stopped"
+        is AISystemController.AIState.Error -> "Error"
     }
-    
-    fun refreshEvolutionReport() {
-        viewModelScope.launch {
-            try {
-                val report = evolutionEngine.getEvolutionReport()
-                _evolutionReport.value = EvolutionReportDisplay(
-                    totalRules = report.totalRulesCount,
-                    activeRules = report.activeRulesCount,
-                    deprecatedRules = report.deprecatedRulesCount,
-                    newRulesThisSession = report.newRulesCreatedThisSession,
-                    topPerformingCount = report.topPerformingRules.size
-                )
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to refresh evolution report")
-            }
-        }
+
+    /**
+     * Get color for current state (for UI visualization).
+     */
+    fun getStateColor(): String = when (aiState.value) {
+        AISystemController.AIState.Idle -> "#808080" // Gray
+        AISystemController.AIState.Initializing -> "#FFFF00" // Yellow
+        AISystemController.AIState.Thinking -> "#0088FF" // Blue
+        AISystemController.AIState.Acting -> "#00FF00" // Green
+        AISystemController.AIState.Reflecting -> "#FF8800" // Orange
+        AISystemController.AIState.Evolving -> "#FF00FF" // Magenta
+        AISystemController.AIState.Paused -> "#FF0000" // Red
+        AISystemController.AIState.Stopped -> "#000000" // Black
+        is AISystemController.AIState.Error -> "#FF0000" // Red
     }
-    
-    fun loadRecentDecisions() {
-        viewModelScope.launch {
-            try {
-                val episodes = memoryRepository.getRecentEpisodes(10)
-                _recentDecisions.value = episodes.map { episode ->
-                    DecisionDisplay(
-                        id = episode.id,
-                        action = episode.action,
-                        outcome = episode.outcome.name,
-                        timestamp = formatTime(episode.timestamp),
-                        reasoning = episode.reasoning.take(100) + "..."
-                    )
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load recent decisions")
-            }
-        }
-    }
-    
-    private fun loadInitialData() {
-        refreshMemoryStats()
-        refreshEvolutionReport()
-        loadRecentDecisions()
-    }
-    
-    private fun formatTime(timeMs: Long): String {
-        val date = java.util.Date(timeMs)
-        val format = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-        return format.format(date)
-    }
+
+    /**
+     * Check if AI is currently running and not paused.
+     */
+    val isAIActive: Boolean
+        get() = aiState.value !in listOf(
+            AISystemController.AIState.Idle,
+            AISystemController.AIState.Paused,
+            AISystemController.AIState.Stopped
+        )
+
+    /**
+     * Get current cycle performance as percentage of target.
+     * 100% means we're meeting 60 FPS target.
+     * >100% means we're slower than target.
+     */
 }
-
-// UI State Models
-sealed class SystemStatus {
-    object Idle : SystemStatus()
-    object Running : SystemStatus()
-    object Paused : SystemStatus()
-    data class Error(val message: String) : SystemStatus()
-}
-
-data class DecisionDisplay(
-    val id: String,
-    val action: String,
-    val outcome: String,
-    val timestamp: String,
-    val reasoning: String
-)
-
-data class MemoryStatsDisplay(
-    val totalEpisodes: Int = 0,
-    val totalRules: Int = 0,
-    val totalFacts: Int = 0,
-    val memoryUsagePercent: Int = 0
-)
-
-data class EvolutionReportDisplay(
-    val totalRules: Int = 0,
-    val activeRules: Int = 0,
-    val deprecatedRules: Int = 0,
-    val newRulesThisSession: Int = 0,
-    val topPerformingCount: Int = 0
-)
