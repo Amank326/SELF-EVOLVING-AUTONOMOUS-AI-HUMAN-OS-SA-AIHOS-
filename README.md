@@ -268,6 +268,62 @@ Safety constraints:
 
 ---
 
+## 🎬 3D Visualization System
+
+SA-AIHOS includes an **ultra-advanced 3D animated UI** powered by Three.js for visualizing AI cognition in real-time.
+
+### Features
+- **Real-time WebGL rendering** with Three.js r128
+- **Futuristic AI-Core visual**: Crystal geometry with 4 layers
+  - Core crystal (icosahedron with fresnel glow)
+  - Neural network connections (animated particles)
+  - Energy field aura (pulsing glow layer)
+  - Floating particle system (kinetic elements)
+- **Smooth animations**: Breathing, rotation, pulse, color cycling
+- **Dynamic lighting**: Multi-light system with orbital motion (cyan, magenta, blue)
+- **4 Color themes**: Cyan, Purple, Red, Blue (switchable at runtime)
+- **Bidirectional communication**: JavaScript ↔ Android via WebView bridge
+- **Performance optimized**: 60 FPS with dynamic intensity control
+
+### 3D Scene Architecture
+
+```
+Android Compose UI
+    ↓
+Three3DScreen (Jetpack Compose)
+    ↓
+Three3DWebView (Custom WebView)
+    ↓
+Scene.js (Three.js Manager)
+    ├── AICore.js (Crystal + Neural + Energy + Particles)
+    ├── AnimationController.js (Breathing, Rotation, Pulse)
+    ├── LightingSystem.js (Multi-light with Orbital Motion)
+    ├── EffectsManager.js (Post-processing)
+    └── AndroidBridge.js (Bidirectional Communication)
+```
+
+### Quick Start with 3D
+
+```kotlin
+// Add Three3DScreen to your navigation
+composable(route = "three-d") {
+    Three3DScreen()
+}
+
+// Get WebView reference and control it
+val webView: Three3DWebView = ...
+webView.setTheme("purple")
+webView.setAnimationIntensity(0.7)
+webView.pauseScene()
+webView.resumeScene()
+```
+
+### 3D Documentation
+- **[3D Architecture Guide](3D_ARCHITECTURE.md)**: Deep technical documentation
+- **[3D Quick Start](3D_QUICK_START.md)**: Get running in 5 minutes
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -298,6 +354,7 @@ cd SA-AIHOS
 3. Go to Dashboard → Click "Start"
 4. Observe AI making decisions in real-time
 5. Check Memory/Evolution tabs to see learning
+6. Navigate to 3D Scene to visualize AI cognition
 
 ---
 
