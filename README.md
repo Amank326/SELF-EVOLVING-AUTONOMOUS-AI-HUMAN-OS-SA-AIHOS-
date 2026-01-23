@@ -5,6 +5,23 @@
 [![Language: Kotlin](https://img.shields.io/badge/Language-Kotlin-blue)]()
 [![Architecture: MVVM + Clean](https://img.shields.io/badge/Architecture-MVVM%20%2B%20Clean-orange)]()
 [![3D Visualization: AI-Driven Procedural](https://img.shields.io/badge/3D-AI--Driven%20Procedural-blueviolet)]()
+[![Interactive: Touch-Responsive](https://img.shields.io/badge/Interactive-Touch--Responsive-ff69b4)]()
+
+---
+
+## 🎮 **INTERACTIVE 3D INTERFACE: The Living AI Consciousness**
+
+Your touch controls the visualization. The AI responds to your interaction. **This is not a decoration—it's an interface.**
+
+- **6 Gesture Types** (TAP, LONG_PRESS, SWIPE, PINCH, TWO_FINGER_ROTATE, DOUBLE_TAP)
+- **Real-Time Responsiveness** - every touch instantly affects animation
+- **Context Awareness** - time of day, device state, usage patterns shape behavior
+- **Long-Press Deep Reflection** - touch and hold to trigger AI introspection
+- **Idle Decay** - animations naturally fade as you stop interacting
+- **Procedural Effects** - no animation loops, everything computed live
+
+👉 **Touch the AI. Watch it think. See it respond to your interaction.**  
+📖 [Read Interactive Design Guide](INTERACTION_DESIGN.md)
 
 ---
 
@@ -33,13 +50,15 @@ SA-AIHOS is a **self-modifying, reflective AI consciousness** running on Android
 - **REFLECTS** deeply on outcomes to understand causality
 - **EVOLVES** its own decision-making rules without external reprogramming
 - **VISUALIZES** its consciousness in real-time 3D animation
+- **RESPONDS** immediately to user touch and device context
 
 This is a **research-grade** AI system designed to explore:
 - Self-improvement mechanisms in AI
 - Explainability and transparency in autonomous systems
 - On-device AI reasoning without cloud dependency
 - The psychology of human-AI interaction
-- **Visual representation of AI cognition** ✨ (NEW!)
+- **Visual representation of AI cognition** ✨
+- **Interactive human-AI interfaces** 🎮 (NEW!)
 
 ---
 
@@ -54,15 +73,53 @@ This is a **research-grade** AI system designed to explore:
 | **Transparency** | Black box | Fully explainable reasoning |
 | **Model** | Single instance per response | Persistent memory, learning state |
 | **Visualization** | N/A | AI-driven 3D cognitive visualization |
+| **Interactivity** | Button taps | Real-time touch and gesture response |
+
+---
+
+## 🎮 Interact with the AI
+
+### Touch Gestures
+
+| Gesture | Action | Effect |
+|---------|--------|--------|
+| **TAP** | Quick touch | Bright flash, particle burst (visual feedback) |
+| **LONG_PRESS** | Hold 1+ second | Blue dims, slow breathing → **AI enters deep reflection** |
+| **SWIPE** | Drag across | Flowing particles follow your gesture |
+| **PINCH** | Two fingers | Open = slow breathing, closed = fast breathing |
+| **TWO_FINGER ROTATE** | Rotate two fingers | Core spins with your fingers |
+| **DOUBLE_TAP** | Two quick taps | Burst explosion effect |
+
+### Context Awareness
+
+The 3D system adapts to:
+- **Time of day** - meditative at night, energetic during day
+- **Device battery** - adaptive intensity based on power
+- **App foreground/background** - pauses when backgrounded
+- **Orientation** - responds to device rotation
+- **Idle time** - animations decay naturally when not touching
 
 ---
 
 ## 🏗️ System Architecture
 
-### Five-Layer AI Stack + AI Motion Intelligence
+### Five-Layer AI Stack + Interactive 3D System
 
 ```
 ┌─────────────────────────────────────────────┐
+│  User Touch / Device Events                 │
+│  (MotionEvent, time, battery, orientation) │
+└──────────┬──────────────────────────────────┘
+           │
+┌──────────▼──────────────────────────────────┐
+│  Interactive Control System (Kotlin)        │
+│  (InteractionController)                    │
+│  - Gesture detection                        │
+│  - Idle tracking                            │
+│  - Context awareness                        │
+└──────────┬──────────────────────────────────┘
+           │ (JSON state)
+┌──────────▼──────────────────────────────────┐
 │  Memory Layer                               │
 │  (Episodic, Semantic, Procedural, Attention)│
 └──────────┬──────────────────────────────────┘
@@ -75,6 +132,7 @@ This is a **research-grade** AI system designed to explore:
 ┌──────────▼──────────────────────────────────┐
 │  Reflection Layer                           │
 │  (Outcome Analysis → Insights)              │
+│  ← Triggered by LONG_PRESS gesture         │
 └──────────┬──────────────────────────────────┘
 
 ┌──────────▼──────────────────────────────────┐
@@ -85,6 +143,14 @@ This is a **research-grade** AI system designed to explore:
 ┌──────────▼──────────────────────────────────┐
 │  Autonomy Controller                        │
 │  (Decision Loop Orchestration)              │
+└──────────┬──────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────┐
+│  3D Visualization System (JavaScript)       │
+│  - AI Motion Intelligence (procedural)      │
+│  - Gesture Animation Engine                 │
+│  - Real-time rendering                      │
 └─────────────────────────────────────────────┘
 ```
 
