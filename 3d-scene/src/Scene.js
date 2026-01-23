@@ -16,6 +16,8 @@ import { AICore } from './components/AICore.js';
 import { AnimationController } from './animations/AnimationController.js';
 import { ProceduralAnimationController } from './animations/ProceduralAnimationController.js';
 import { AIResponsiveComponentManager } from './components/AIResponsiveComponentManager.js';
+import { InteractionResponsiveController } from './animations/InteractionResponsiveController.js';
+import { GestureAnimationEngine } from './animations/GestureAnimationEngine.js';
 import { LightingSystem } from './lighting/LightingSystem.js';
 import { EffectsManager } from './effects/EffectsManager.js';
 import { AndroidBridge } from './bridge/AndroidBridge.js';
@@ -37,6 +39,8 @@ export class SAIHOSScene {
     this.animationController = null;
     this.proceduralAnimationController = null;
     this.componentManager = null;
+    this.interactionResponsiveController = null;
+    this.gestureAnimationEngine = null;
     this.lightingSystem = null;
     this.effectsManager = null;
 
@@ -105,6 +109,10 @@ export class SAIHOSScene {
 
       // Initialize AI-driven procedural animation system
       this.proceduralAnimationController = new ProceduralAnimationController();
+      
+      // Initialize interaction system
+      this.interactionResponsiveController = new InteractionResponsiveController(this);
+      this.gestureAnimationEngine = new GestureAnimationEngine();
       
       // Initialize component manager to apply animations to 3D objects
       this.componentManager = new AIResponsiveComponentManager(
@@ -205,7 +213,7 @@ export class SAIHOSScene {
       }
     });
 
-    // Mouse interaction
+    // Mouse/Touch interaction - forward to interaction system
     this.container.addEventListener('mousemove', (e) => {
       const rect = this.container.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
@@ -216,6 +224,33 @@ export class SAIHOSScene {
     this.container.addEventListener('click', () => {
       this.bridge.notifyClick();
     });
+
+    // Touch events for mobile
+    this.container.addEventListener('touchstart', (e) => this._handleTouchEvent(e));
+    this.container.addEventListener('touchmove', (e) => this._handleTouchEvent(e));
+    this.container.addEventListener('touchend', (e) => this._handleTouchEvent(e));
+  }
+
+  /**
+   * Handle touch events and forward to Android bridge
+   */
+  _handleTouchEvent(event) {
+    if (event.touches.length > 0) {
+      const touch = event.touches[0];
+      const rect = this.container.getBoundingClientRect();
+      const x = (touch.clientX - rect.left) / rect.width;
+      const y = (touch.clientY - rect.top) / rect.height;
+      
+      // Forward to Android if available
+      if (this.bridge && this.bridge.sendToAndroid) {
+        this.bridge.sendToAndroid('touchEvent', {
+          x: x,
+          y: y,
+          pressure: touch.force || 0.5,
+          type: event.type,
+        });
+      }
+    }
   }
 
   /**
@@ -231,6 +266,16 @@ export class SAIHOSScene {
     // Update PROCEDURAL animations based on AI state
     if (this.proceduralAnimationController) {
       this.proceduralAnimationController.update(this.deltaTime);
+    }
+
+    // Update interaction-based animations
+    if (this.interactionResponsiveController) {
+      this.interactionResponsiveController.update(this.deltaTime);
+    }
+
+    // Update gesture effects
+    if (this.gestureAnimationEngine) {
+      this.gestureAnimationEngine.computeEffects(this.deltaTime);
     }
 
     // Update traditional animations (fallback)
@@ -353,6 +398,65 @@ export class SAIHOSScene {
    * Dispose of all resources
    */
   /**
+   * Receive interaction state from Android
+   * Updates 3D animations based on user touch and device context
+   */
+  setInteractionState(interactionStateJson) {
+    try {
+      const interactionState = typeof interactionStateJson === 'string' 
+        ? JSON.parse(interactionStateJson)
+        : interactionStateJson;
+      
+      if (this.interactionResponsiveController) {
+        this.interactionResponsiveController.setInteractionState(interactionState);
+      }
+      
+      console.debug('[SA-AIHOS 3D] Interaction state:', {
+        gesture: interactionState.gestureType,
+        idling: interactionState.isIdling,
+        context: interactionState.contextScore.toFixed(2),
+        energy: interactionState.getInteractionEnergy?.() || 0,
+      });
+    } catch (error) {
+      console.error('[SA-AIHOS 3D] Error setting interaction state:', error);
+    }
+  }
+
+  /**
+   * Handle gesture animations from Android
+   */
+  onGesture(gestureType, intensity) {
+    try {
+      if (!this.gestureAnimationEngine) return;
+      
+      switch (gestureType) {
+        case 'TAP':
+          this.gestureAnimationEngine.applyTapEffect({ x: 0, y: 0 }, null);
+          break;
+        case 'LONG_PRESS':
+          this.gestureAnimationEngine.activateReflectionMode();
+          break;
+        case 'SWIPE':
+          this.gestureAnimationEngine.applySweepEffect({ x: 1, y: 0 }, intensity);
+          break;
+        case 'PINCH':
+          this.gestureAnimationEngine.applyPinchEffect(intensity);
+          break;
+        case 'DOUBLE_TAP':
+          this.gestureAnimationEngine.applyDoubleTabEffect();
+          break;
+        case 'TWO_FINGER_ROTATE':
+          this.gestureAnimationEngine.applyTwoFingerRotationEffect(intensity);
+          break;
+      }
+      
+      console.log('[SA-AIHOS 3D] Gesture:', gestureType, 'intensity:', intensity);
+    } catch (error) {
+      console.error('[SA-AIHOS 3D] Error handling gesture:', error);
+    }
+  }
+
+  /**
    * Receive AI motion state from Android
    * This is the primary method that drives procedural animations
    */
@@ -387,10 +491,15 @@ export class SAIHOSScene {
    * Get current animation metrics for display/debugging
    */
   getAnimationMetrics() {
+    const interactionMetrics = this.interactionResponsiveController?.getMetrics() || {};
+    const gestureMetrics = this.gestureAnimationEngine?.getMetrics() || {};
+    
     return {
       elapsedTime: this.proceduralAnimationController?.elapsedTime || 0,
       frameCount: this.frameCount,
       currentAIState: this.proceduralAnimationController?.aiMotionState?.primaryState || 'IDLE',
+      interaction: interactionMetrics,
+      gesture: gestureMetrics,
       fps: this.calculateFPS(),
     };
   }

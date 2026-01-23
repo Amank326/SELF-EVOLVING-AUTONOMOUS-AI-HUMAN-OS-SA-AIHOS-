@@ -63,6 +63,12 @@ export class AndroidBridge {
       } else if (method === 'setAIMotionState') {
         // AI-DRIVEN ANIMATION: Receive AI state and drive procedural animations
         this.scene.setAIMotionState(data);
+      } else if (method === 'setInteractionState') {
+        // INTERACTION-DRIVEN: Receive user touch/gesture state and apply animations
+        this.scene.setInteractionState(data);
+      } else if (method === 'gesture') {
+        // Specific gesture event
+        this.scene.onGesture(data.type, data.intensity);
       } else if (method === 'getMetrics') {
         const metrics = this.scene.getMetrics();
         this.sendToAndroid('metricsUpdate', metrics);
@@ -140,6 +146,17 @@ export class AndroidBridge {
    */
   notifyMetrics(metrics) {
     this.sendToAndroid('metrics', metrics);
+  }
+
+  /**
+   * Receive interaction state from Android and apply to 3D scene
+   * Called by Kotlin InteractionController
+   */
+  receiveInteractionState(interactionStateJson) {
+    // Pass to scene if available
+    if (this.scene && this.scene.setInteractionState) {
+      this.scene.setInteractionState(interactionStateJson);
+    }
   }
 
   /**
