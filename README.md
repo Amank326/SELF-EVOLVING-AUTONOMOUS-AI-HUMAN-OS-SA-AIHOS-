@@ -20,6 +20,48 @@
 | **Understand the research** | [SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) — Full formalization |
 | **Get started coding** | [QUICK_START.md](docs/QUICK_START.md) — Setup & build |
 | **Find everything** | [RESEARCH_INDEX.md](RESEARCH_INDEX.md) — Master index |
+| **Understand what this IS** | [SYSTEM_DEFINITION.md](SYSTEM_DEFINITION.md) — Formal system definition |
+| **Understand what's novel** | [NOVELTY_AND_CLAIMS.md](NOVELTY_AND_CLAIMS.md) — Technical claims and novelty |
+
+---
+
+## 🔬 System Definition: What Is SA-AIHOS?
+
+**SA-AIHOS is NOT:**
+- A chatbot or conversational AI
+- A general-purpose assistant
+- A static UI or predefined system
+- A cloud-dependent service
+- A recommendation engine
+
+**SA-AIHOS IS:**
+- A **self-evolving autonomous reasoning agent** that makes decisions, observes outcomes, and modifies its own decision rules at runtime
+- A **reflexive cognitive system** with a closed-loop architecture: Think → Act → Reflect → Evolve
+- A **cognitive visualization system** that displays AI reasoning in real-time through 3D animation driven directly by internal cognitive state
+- A **gesture-interactive system** where user touch triggers AI introspection and influences (but doesn't control) AI learning
+- A **context-aware agent** that adapts behavior based on device state, time of day, and usage patterns
+
+**In one sentence:** SA-AIHOS is an on-device autonomous AI that learns from its own actions and visualizes its thinking in real-time as 3D animation responsive to user gesture.
+
+**For the formal definition**, see [SYSTEM_DEFINITION.md](SYSTEM_DEFINITION.md) (5,000+ lines covering system boundaries, component interactions, cognitive loop formalization, and comparison to related concepts).
+
+---
+
+## 💎 Why This System Didn't Exist Before
+
+**The core innovation is a combination that prior systems don't share:**
+
+| Innovation | Why It's Hard | What It Enables |
+|-----------|---|---|
+| **Runtime Rule Modification** | Requires interpretable rules (not neural weights) + conflict resolution + persistence | System learns from its own experience without retraining |
+| **Real-Time Cognitive Visualization** | Requires state-to-animation mapping + <100ms latency + procedural rendering | Users watch the AI think in real-time |
+| **On-Device Reasoning** | Requires algorithmic reasoning (no LLMs) + bounded memory + sub-100ms inference | Privacy, low latency, no API costs |
+| **Gesture-Triggered Reflection** | Requires integration of user input into reasoning loop + variable-depth introspection | Human-AI collaboration in learning |
+| **Contradiction Resolution** | Requires formal rule semantics + conflict detection + automatic repair | Rule set stays consistent through autonomous modification |
+
+**These five innovations work together to define a new category of system** that prior AI approaches (neural networks, behavior trees, RL, chatbots) don't address.
+
+**See [NOVELTY_AND_CLAIMS.md](NOVELTY_AND_CLAIMS.md) (4,000+ lines)** for detailed technical claims and explanation of why each claim is non-trivial and non-obvious.
 
 ---
 
