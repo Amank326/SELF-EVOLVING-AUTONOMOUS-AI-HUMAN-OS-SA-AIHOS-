@@ -4,6 +4,21 @@
 [![Platform: Android](https://img.shields.io/badge/Platform-Android-green)]()
 [![Language: Kotlin](https://img.shields.io/badge/Language-Kotlin-blue)]()
 [![Architecture: MVVM + Clean](https://img.shields.io/badge/Architecture-MVVM%20%2B%20Clean-orange)]()
+[![3D Visualization: AI-Driven Procedural](https://img.shields.io/badge/3D-AI--Driven%20Procedural-blueviolet)]()
+
+---
+
+## 🎨 **WORLD-FIRST: AI-Driven Procedural Animation System**
+
+This project includes a **revolutionary motion intelligence system** that drives 3D animations directly from real-time AI cognitive state - not predetermined keyframes.
+
+- **8 Cognitive States** (IDLE, THINKING, DELIBERATING, REFLECTING, EVOLVING, UNCERTAIN, EXECUTING, ERROR)
+- **6 Animation Parameters** driven by AI metrics (breathing, rotation, color, glow, particles, morphing)
+- **Emergent Visual Behavior** - every motion reflects actual AI thinking
+- **Procedural, Not Scripted** - animations are computed live, not played back
+
+👉 **See the visualization come alive as AI thinks, learns, and evolves!**  
+📖 [Read AI Motion Intelligence Guide](docs/AI_MOTION_INTELLIGENCE.md)
 
 ---
 
@@ -17,12 +32,14 @@ SA-AIHOS is a **self-modifying, reflective AI consciousness** running on Android
 - **ACTS** autonomously within defined safety boundaries  
 - **REFLECTS** deeply on outcomes to understand causality
 - **EVOLVES** its own decision-making rules without external reprogramming
+- **VISUALIZES** its consciousness in real-time 3D animation
 
 This is a **research-grade** AI system designed to explore:
 - Self-improvement mechanisms in AI
 - Explainability and transparency in autonomous systems
 - On-device AI reasoning without cloud dependency
 - The psychology of human-AI interaction
+- **Visual representation of AI cognition** ✨ (NEW!)
 
 ---
 
@@ -36,12 +53,13 @@ This is a **research-grade** AI system designed to explore:
 | **Adaptation** | Pre-programmed responses | Generates new rules from insights |
 | **Transparency** | Black box | Fully explainable reasoning |
 | **Model** | Single instance per response | Persistent memory, learning state |
+| **Visualization** | N/A | AI-driven 3D cognitive visualization |
 
 ---
 
 ## 🏗️ System Architecture
 
-### Five-Layer AI Stack
+### Five-Layer AI Stack + AI Motion Intelligence
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -88,7 +106,57 @@ EVOLVE: Update decision rules
 
 ---
 
-## 🎯 Key Components
+## � AI Motion Intelligence: Visualize Cognition in Real-Time
+
+**Make AI consciousness visible.** The 3D visualization system responds in real-time to AI state changes:
+
+### 8 Cognitive States → 8 Visual Modes
+
+```
+IDLE (0.5 Hz)       → Calm cyan, slow breathing
+THINKING (1.0 Hz)   → Bright cyan, steady rotation  
+DELIBERATING (1.8 Hz) → Purple, fast multi-axis rotation
+REFLECTING (0.7 Hz) → Blue, inward particles, dimmed lights
+EVOLVING (1.5 Hz)   → Green spirals, geometry morphing, light pulsing
+UNCERTAIN (1.3 Hz)  → Amber pulsing, chaotic particles
+EXECUTING (1.2 Hz)  → Cyan streaming, purposeful motion
+ERROR (2.5 Hz)      → Red flashing, agitated rotation
+```
+
+### 6 Animation Parameters Driven by AI Metrics
+
+```
+Breathing Rate   ← Cognitive load
+Rotation Speed   ← Decision complexity  
+Color Theme      ← Operational state
+Glow Intensity   ← Confidence level
+Particle Emission ← Memory activity
+Geometry Morph   ← Learning/adaptation rate
+```
+
+### Real-Time Data Flow
+
+```
+AI Layers (Memory, Reasoning, Reflection, Evolution, Autonomy)
+    ↓ (extract metrics)
+AIStateBroadcaster (monitor and compute state)
+    ↓ (send AIMotionState JSON)
+AndroidBridge (route to WebView)
+    ↓ (JavaScript callback)
+ProceduralAnimationController (compute animation frames)
+    ↓ (apply per-frame updates)
+AIResponsiveComponentManager (update 3D objects)
+    ↓ (render)
+Real-time 3D Visualization
+```
+
+**Key advantage**: Not keyframe animation. Every motion is **procedurally computed** from actual AI metrics, creating emergent animations that reflect true cognitive activity.
+
+👉 [Full documentation](docs/AI_MOTION_INTELLIGENCE.md) | [Integration guide](docs/AI_MOTION_INTEGRATION_GUIDE.md) | [Quick reference](docs/AI_MOTION_QUICK_REFERENCE.md)
+
+---
+
+## �🎯 Key Components
 
 ### 1. Memory Layer (`ai/memory/`)
 - **Episodic Memory**: Individual decision events with full context
