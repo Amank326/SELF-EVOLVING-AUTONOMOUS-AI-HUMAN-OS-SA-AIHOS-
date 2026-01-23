@@ -32,3 +32,13 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Gradle Wrapper
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
