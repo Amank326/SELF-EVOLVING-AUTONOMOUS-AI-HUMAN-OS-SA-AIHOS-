@@ -740,6 +740,86 @@ webView.resumeScene()
 
 ---
 
+## 🏛️ Android UI Architecture (Refactored)
+
+### Clean Reactive Design: ViewModel + Compose + StateFlow
+
+The Android UI layer has been completely refactored to provide **production-grade state management** with real-time observability:
+
+```
+┌─────────────────────────────────────────────┐
+│  MainActivity (Minimal - delegates to      │
+│  Compose setContent)                        │
+└──────────┬──────────────────────────────────┘
+           │
+┌──────────▼──────────────────────────────────┐
+│  SAIHOSApp Composable                       │
+│  - Observes aiState & cycleMetrics via     │
+│    collectAsStateWithLifecycle()            │
+│  - Displays real-time AI visualization      │
+│  - Responsive to state changes (animated)   │
+└──────────┬──────────────────────────────────┘
+           │
+┌──────────▼──────────────────────────────────┐
+│  SAIHOSViewModel (StateFlow Expose)         │
+│  - aiState (Think/Act/Reflect/Evolve)      │
+│  - cycleMetrics (performance tracking)      │
+│  - lastDecision (reasoning visualization)   │
+│  - lastInsight (learning feedback)          │
+│  - Manages lifecycle (start/pause/resume)   │
+└──────────┬──────────────────────────────────┘
+           │
+┌──────────▼──────────────────────────────────┐
+│  AISystemController (State Machine)         │
+│  - Executes Think→Act→Reflect→Evolve cycle │
+│  - Tracks cycle time (target: 16.67ms/60Hz)│
+│  - Monitors health % (100% = target met)    │
+│  - Real-time StateFlow updates              │
+└─────────────────────────────────────────────┘
+```
+
+### Key Features
+
+✅ **Real-Time Observable State** - UI automatically updates when AI state changes (no polling)
+✅ **Performance Metrics** - Every cycle produces timing data (think/act/reflect/evolve phases)
+✅ **Lifecycle-Aware** - Proper resource cleanup on activity destruction
+✅ **Type-Safe State Machine** - No string-based state, sealed classes guarantee correctness
+✅ **Animated Transitions** - 500ms smooth color transitions between AI states
+✅ **Health Indicator** - Visual feedback showing cycle time vs. 60 FPS target
+
+### Real-Time AI State Visualization
+
+The **AIStateStatusBar** displays:
+- Current AI state with description (Thinking, Acting, Reflecting, Evolving, etc.)
+- Cycle time in milliseconds
+- Health percentage with color coding:
+  - 🟢 Green: ≥100% (meeting 60 FPS target)
+  - 🟡 Yellow: 75-99% (acceptable)
+  - 🔴 Red: <75% (degraded performance)
+
+### Developer Quick Start
+
+**Using AI State in Compose:**
+```kotlin
+@Composable
+fun MyScreen() {
+    val viewModel: SAIHOSViewModel = hiltViewModel()
+    val aiState by viewModel.aiState.collectAsStateWithLifecycle()
+    val metrics by viewModel.cycleMetrics.collectAsStateWithLifecycle()
+    
+    Text("AI: ${getStateDescription(aiState)}")
+    Text("Cycle: ${metrics.lastCycleTimeMs}ms")
+}
+```
+
+### Learn More
+
+📖 [ARCHITECTURE_REFACTOR_SUMMARY.md](ARCHITECTURE_REFACTOR_SUMMARY.md) - Complete refactor details  
+📖 [ARCHITECTURE_QUICK_REFERENCE.md](ARCHITECTURE_QUICK_REFERENCE.md) - Developer reference guide  
+📖 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Detailed architecture documentation
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
