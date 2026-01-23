@@ -1,218 +1,66 @@
 package com.aihos.data.db
 
-import androidx.room.*
-import com.aihos.ai.memory.Episode
-import com.aihos.ai.memory.BehavioralRule
-import com.aihos.ai.memory.SemanticFact
-import com.aihos.ai.memory.Outcome
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.aihos.data.db.dao.*
+import com.aihos.data.db.entity.*
 
 /**
- * Room Database Entities
- * These map to the SQLite schema
- */
-
-@Entity(tableName = "episodes")
-data class EpisodeEntity(
-    @PrimaryKey val id: String,
-    val timestamp: Long,
-    val decision: String,
-    val action: String,
-    val contextJson: String, // JSON serialized map
-    val outcome: String,
-    val reasoning: String,
-    val reflection: String,
-    val createdAt: Long
-)
-
-@Entity(tableName = "behavioral_rules")
-data class BehavioralRuleEntity(
-    @PrimaryKey val id: String,
-    val condition: String,
-    val action: String,
-    val weight: Float,
-    val successCount: Int,
-    val failureCount: Int,
-    val createdAt: Long,
-    val evolvedAt: Long,
-    val isActive: Boolean
-)
-
-@Entity(tableName = "semantic_facts")
-data class SemanticFactEntity(
-    @PrimaryKey val id: String,
-    val fact: String,
-    val confidence: Float,
-    val sourcesJson: String, // JSON list of episode IDs
-    val lastUpdated: Long
-)
-
-@Entity(
-    tableName = "evolution_log",
-    foreignKeys = [
-        ForeignKey(
-            entity = BehavioralRuleEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["ruleId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
-)
-data class EvolutionLogEntity(
-    @PrimaryKey val id: String,
-    val timestamp: Long,
-    val ruleId: String,
-    val changeType: String,
-    val oldValue: String?,
-    val newValue: String?,
-    val reflection: String
-)
-
-@Entity(tableName = "autonomy_audit")
-data class AutonomyAuditEntity(
-    @PrimaryKey val id: String,
-    val timestamp: Long,
-    val decisionType: String,
-    val actionTaken: String,
-    val userApproved: Boolean,
-    val outcome: String
-)
-
-/**
- * DAOs - Data Access Objects
- */
-
-@Dao
-interface EpisodeDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(episode: EpisodeEntity): Long
-    
-    @Query("SELECT * FROM episodes WHERE id = :id")
-    suspend fun getById(id: String): EpisodeEntity?
-    
-    @Query("SELECT * FROM episodes ORDER BY timestamp DESC LIMIT :limit")
-    suspend fun getRecent(limit: Int): List<EpisodeEntity>
-    
-    @Query("SELECT * FROM episodes WHERE timestamp BETWEEN :startTime AND :endTime ORDER BY timestamp DESC")
-    suspend fun queryByTimeRange(startTime: Long, endTime: Long): List<EpisodeEntity>
-    
-    @Query("SELECT COUNT(*) FROM episodes")
-    suspend fun count(): Int
-    
-    @Query("DELETE FROM episodes WHERE timestamp < :beforeTimestamp")
-    suspend fun deleteOlderThan(beforeTimestamp: Long): Int
-}
-
-@Dao
-interface BehavioralRuleDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(rule: BehavioralRuleEntity): Long
-    
-    @Query("SELECT * FROM behavioral_rules WHERE id = :id")
-    suspend fun getById(id: String): BehavioralRuleEntity?
-    
-    @Query("SELECT * FROM behavioral_rules")
-    suspend fun getAll(): List<BehavioralRuleEntity>
-    
-    @Query("SELECT * FROM behavioral_rules WHERE isActive = 1")
-    suspend fun getActive(): List<BehavioralRuleEntity>
-    
-    @Update
-    suspend fun update(rule: BehavioralRuleEntity)
-    
-    @Query("COUNT(*) FROM behavioral_rules")
-    suspend fun count(): Int
-}
-
-@Dao
-interface SemanticFactDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(fact: SemanticFactEntity): Long
-    
-    @Query("SELECT * FROM semantic_facts WHERE fact LIKE '%' || :pattern || '%'")
-    suspend fun queryByPattern(pattern: String): List<SemanticFactEntity>
-    
-    @Query("SELECT * FROM semantic_facts ORDER BY confidence DESC LIMIT :limit")
-    suspend fun getHighConfidence(limit: Int): List<SemanticFactEntity>
-}
-
-@Dao
-interface EvolutionLogDao {
-    @Insert
-    suspend fun insert(entry: EvolutionLogEntity): Long
-    
-    @Query("SELECT * FROM evolution_log WHERE ruleId = :ruleId ORDER BY timestamp DESC")
-    suspend fun getHistoryForRule(ruleId: String): List<EvolutionLogEntity>
-    
-    @Query("SELECT * FROM evolution_log ORDER BY timestamp DESC LIMIT :limit")
-    suspend fun getRecent(limit: Int): List<EvolutionLogEntity>
-}
-
-@Dao
-interface AutonomyAuditDao {
-    @Insert
-    suspend fun insert(audit: AutonomyAuditEntity): Long
-    
-    @Query("SELECT * FROM autonomy_audit ORDER BY timestamp DESC LIMIT :limit")
-    suspend fun getRecent(limit: Int): List<AutonomyAuditEntity>
-}
-
-/**
- * Main Database
+ * Room database for SA-AIHOS
+ * Handles all local data persistence for AI memory, reasoning, evolution, and autonomy
+ * Offline-first, Privacy-first database
  */
 @Database(
     entities = [
-        EpisodeEntity::class,
-        BehavioralRuleEntity::class,
-        SemanticFactEntity::class,
+        MemoryEntity::class,
+        ReasoningRuleEntity::class,
+        InsightEntity::class,
         EvolutionLogEntity::class,
-        AutonomyAuditEntity::class
+        AutonomousDecisionEntity::class,
+        PerformanceMetricEntity::class,
+        FeedbackEntity::class,
+        SystemConfigEntity::class
     ],
     version = 1,
     exportSchema = true
 )
 abstract class SAIHOSDatabase : RoomDatabase() {
-    abstract fun episodeDao(): EpisodeDao
-    abstract fun ruleDao(): BehavioralRuleDao
-    abstract fun factDao(): SemanticFactDao
+    
+    // DAO accessors
+    abstract fun memoryDao(): MemoryDao
+    abstract fun reasoningRuleDao(): ReasoningRuleDao
+    abstract fun insightDao(): InsightDao
     abstract fun evolutionLogDao(): EvolutionLogDao
-    abstract fun auditDao(): AutonomyAuditDao
-}
-
-/**
- * Converter for complex types
- */
-class Converters {
-    private val json = Json
+    abstract fun autonomousDecisionDao(): AutonomousDecisionDao
+    abstract fun performanceMetricDao(): PerformanceMetricDao
+    abstract fun feedbackDao(): FeedbackDao
+    abstract fun systemConfigDao(): SystemConfigDao
     
-    @TypeConverter
-    fun fromStringMap(value: Map<String, String>): String {
-        return json.encodeToString(value)
-    }
-    
-    @TypeConverter
-    fun toStringMap(value: String): Map<String, String> {
-        return json.decodeFromString(value)
-    }
-    
-    @TypeConverter
-    fun fromStringList(value: List<String>): String {
-        return json.encodeToString(value)
-    }
-    
-    @TypeConverter
-    fun toStringList(value: String): List<String> {
-        return json.decodeFromString(value)
-    }
-    
-    @TypeConverter
-    fun fromOutcome(value: Outcome): String {
-        return value.name
-    }
-    
-    @TypeConverter
-    fun toOutcome(value: String): Outcome {
-        return Outcome.valueOf(value)
+    companion object {
+        @Volatile
+        private var instance: SAIHOSDatabase? = null
+        
+        fun getInstance(context: Context): SAIHOSDatabase {
+            return instance ?: synchronized(this) {
+                instance ?: buildDatabase(context.applicationContext).also { instance = it }
+            }
+        }
+        
+        private fun buildDatabase(context: Context): SAIHOSDatabase {
+            return Room.databaseBuilder(
+                context,
+                SAIHOSDatabase::class.java,
+                "sa_aihos_db"
+            )
+                .fallbackToDestructiveMigration()  // For development - use proper migrations in production
+                .build()
+        }
+        
+        fun closeInstance() {
+            instance?.close()
+            instance = null
+        }
     }
 }
