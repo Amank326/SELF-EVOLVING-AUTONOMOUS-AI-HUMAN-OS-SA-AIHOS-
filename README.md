@@ -853,6 +853,142 @@ Areas for contribution:
 
 ---
 
+## 🌐 Open Source & Community
+
+**SA-AIHOS is a serious research-grade open-source project** designed for researchers, engineers, and designers who care deeply about transparent AI systems.
+
+### Why Open Source?
+
+We believe trustworthy AI requires **observable reasoning**. That means:
+- No black boxes
+- No proprietary algorithms  
+- No gatekeeping of cognitive interfaces
+- Full transparency about decision-making
+
+By making SA-AIHOS open source, we enable researchers worldwide to:
+- Validate our approaches independently
+- Extend SA-AIHOS for their own work
+- Contribute improvements back
+- Build a community around observable AI
+
+### Who Should Contribute?
+
+**Researchers** interested in:
+- AI transparency and explainability
+- Autonomous learning systems
+- Cognitive interfaces and human-AI interaction
+- Mobile on-device AI
+
+**Engineers** who want to:
+- Build production-grade Android systems
+- Work with 3D rendering and interactive visualization
+- Optimize real-time AI inference on mobile
+- Explore novel architectural patterns
+
+**Designers & UX specialists** focused on:
+- Human-AI interaction design
+- Visual representation of AI cognition
+- Gesture-based interfaces
+- Accessibility for autonomous systems
+
+**Students & educators** in:
+- Computer science and AI
+- Human-computer interaction
+- Mobile systems and embedded AI
+- Software architecture
+
+### Contributing to SA-AIHOS
+
+**Start here:** [CONTRIBUTING.md](CONTRIBUTING.md)
+
+The contribution guide includes:
+- ✅ **Setup** (step-by-step for Kotlin, JavaScript, Android SDK)
+- ✅ **Coding Standards** (with examples for good vs bad code)
+- ✅ **Design Guidelines** (for AI and visualization changes)
+- ✅ **Testing Requirements** (coverage targets, automation)
+- ✅ **Complete PR Workflow** (fork → branch → test → submit)
+
+### Community Standards
+
+**We are committed to an inclusive, respectful community.**
+
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for:
+- ✅ **Behavioral standards** (what we expect, with examples)
+- ✅ **Reporting procedures** (how to raise concerns safely)
+- ✅ **Enforcement** (clear, fair, transparent)
+- ✅ **Accessibility** (language clarity, inclusive terminology)
+
+### Project Roadmap
+
+**Where is SA-AIHOS going?**
+
+See [ROADMAP.md](ROADMAP.md) for:
+- ✅ **3-6 month goals** (foundation, stability, onboarding)
+- ✅ **1-2 year goals** (research validation, multi-agent reasoning)
+- ✅ **5+ year vision** (distributed cognitive AI, embodied systems)
+- ✅ **Success metrics** (research impact, community adoption, real-world deployments)
+
+### Research + Industry Collaboration
+
+SA-AIHOS bridges **research and industry**:
+
+**For Researchers:**
+- Use SA-AIHOS as foundation for studies on AI transparency
+- Publish papers using SA-AIHOS architecture
+- Propose new research directions in discussions
+- We'll prioritize research-critical changes
+
+**For Industry Partners:**
+- Deploy SA-AIHOS in pilot applications
+- Collaborate on production-grade extensions
+- Licensing and custom development available
+- Commercial support and maintenance
+
+**For Educators:**
+- Teach AI systems design with real-world architecture
+- Use SA-AIHOS in courses on autonomous systems, HCI, mobile AI
+- Assign student projects extending SA-AIHOS
+- We'll help adapt materials for your classroom
+
+### Getting Help
+
+**Questions about contributing?**
+- Check [CONTRIBUTING.md](CONTRIBUTING.md) FAQ
+- Open a discussion on GitHub
+- Email for private questions (see CONTRIBUTING.md)
+
+**Found a bug?**
+- Check existing issues first
+- Report with reproduction steps
+- We aim to respond within 48 hours
+
+**Have an idea?**
+- Open a discussion (not an issue)
+- Propose what you want to build
+- Get feedback before you start coding
+
+**Want to connect?**
+- Watch the repository (get notified of updates)
+- Star if you find it interesting (helps discovery)
+- Share your work using SA-AIHOS (mention in issues)
+
+### Community Moments
+
+- **Monthly calls** (discuss progress, research, ideas) — dates in discussions
+- **Blog posts** (AI, transparency, research updates) — check docs/
+- **Showcase** (community projects using SA-AIHOS) — coming soon
+- **Mentorship** (help new contributors get started) — coming soon
+
+### Recognition
+
+Contributors are recognized in:
+- ✅ CONTRIBUTORS.md (cumulative hall of fame)
+- ✅ Commit history (timestamped, searchable)
+- ✅ Monthly community updates
+- ✅ Research papers and publications
+
+---
+
 ## 📝 License
 
 MIT License - See LICENSE file for details
