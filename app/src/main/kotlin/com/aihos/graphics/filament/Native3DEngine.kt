@@ -16,6 +16,19 @@ import kotlin.math.sin
  * This engine renders the AI Core visualization using Google's Filament,
  * a physically-based rendering library optimized for mobile.
  *
+ * Optimizations:
+ * - Adaptive quality scaling based on device and frame times
+ * - Precise frame pacing to maintain target FPS
+ * - Lifecycle-aware rendering (pause/resume/destroy)
+ * - Time-based animations (no frame-rate dependency)
+ * - Efficient memory management and resource cleanup
+ *
+ * Performance Target:
+ * - 60 FPS on mid-range devices (45-60 on lower-end)
+ * - <16.67ms frame time with <1ms jitter
+ * - Efficient GPU memory usage
+ * - Graceful degradation on low-end devices
+ *
  * Responsibilities:
  * - Initialize and manage Filament rendering context
  * - Create and manage 3D geometry (AI Core orb)
@@ -23,11 +36,6 @@ import kotlin.math.sin
  * - Handle lifecycle events (resume/pause/destroy)
  * - Provide procedural animation capabilities
  * - Manage performance and memory efficiently
- *
- * Performance Target:
- * - 60 FPS on mid-range devices
- * - <16.67ms frame time
- * - Efficient GPU memory usage
  */
 class Native3DEngine(
     private val context: Context,
@@ -63,6 +71,17 @@ class Native3DEngine(
     private var targetScale = 1.0f
     private var currentScale = 1.0f
     
+    // ==================== OPTIMIZATION MANAGERS ====================
+    
+    private lateinit var qualityManager: AdaptiveQualityManager
+    private lateinit var framePacer: FramePacingManager
+    private var currentQualitySettings: AdaptiveQualityManager.QualitySettings? = null
+    
+    // ==================== PERFORMANCE MONITORING ====================
+    
+    private var frameCounter = 0
+    private var lastStatsUpdateNanos = System.nanoTime()
+    
     // ==================== LIFECYCLE ====================
     
     /**
@@ -73,6 +92,13 @@ class Native3DEngine(
         Timber.d("Native3DEngine: Initializing Filament rendering")
         
         try {
+            // Initialize quality and frame pacing managers
+            qualityManager = AdaptiveQualityManager(context)
+            currentQualitySettings = qualityManager.getQualitySettings()
+            framePacer = FramePacingManager(currentQualitySettings!!.targetFps)
+            
+            Timber.i("Native3DEngine: ${qualityManager.getDeviceCapabilitiesReport()}")
+            
             // Create Filament engine
             engine = Engine.create()
             renderer = engine.createRenderer()
@@ -95,14 +121,14 @@ class Native3DEngine(
             // Create materials
             aiCoreMaterial = AICoreMaterial(engine)
             
-            // Create scene geometry and lights
+            // Create scene geometry and lights with quality settings
             createAICoreGeometry()
             createLighting()
             
             // Start rendering loop
             startRendering()
             
-            Timber.i("Native3DEngine: Initialization complete")
+            Timber.i("Native3DEngine: Initialization complete (Quality: ${currentQualitySettings!!.qualityLevel})")
         } catch (e: Exception) {
             Timber.e(e, "Native3DEngine: Initialization failed")
             throw e
@@ -111,14 +137,17 @@ class Native3DEngine(
     
     /**
      * Create the AI Core geometry (central orb)
-     * Uses procedurally generated mesh
+     * Uses procedurally generated mesh with adaptive quality
      */
     private fun createAICoreGeometry() {
         // Create entity for AI Core
         entityAICore = EntityManager.get().create()
         
-        // Create a sphere mesh (32x32 segments for smooth appearance)
-        val sphereMesh = createSphereMesh(engine, radius = 1f, segments = 32)
+        // Use quality-dependent segment count
+        val segments = currentQualitySettings?.sphereSegments ?: 32
+        
+        // Create a sphere mesh (adaptive segments based on quality)
+        val sphereMesh = createSphereMesh(engine, radius = 1f, segments = segments)
         
         // Add renderable to entity
         RenderableManager.Builder(1)
@@ -132,74 +161,101 @@ class Native3DEngine(
         // Add to scene
         scene.addEntity(entityAICore)
         
-        Timber.d("Native3DEngine: AI Core geometry created (entity=$entityAICore)")
+        Timber.d("Native3DEngine: AI Core geometry created (segments=$segments, entity=$entityAICore)")
     }
     
     /**
      * Create lighting setup for the scene
-     * - Main directional light
-     * - Ambient fill light
+     * Adapts quality based on device capabilities
      */
     private fun createLighting() {
-        // Main directional light
-        lightEntity = EntityManager.get().create()
-        LightManager.Builder(LightManager.Type.DIRECTIONAL)
-            .color(1f, 1f, 1f)
-            .intensity(50000f) // Lux
-            .direction(0.6f, 1f, 0.8f)
-            .castShadows(true)
-            .shadowMapSize(2048)
-            .build(engine, lightEntity)
-        scene.addEntity(lightEntity)
+        val settings = currentQualitySettings ?: return
         
-        // Ambient light for fill
-        lightAmbient = EntityManager.get().create()
-        LightManager.Builder(LightManager.Type.INDIRECT)
-            .intensity(5000f)
-            .build(engine, lightAmbient)
-        scene.addEntity(lightAmbient)
+        // Main directional light (always created)
+        if (settings.enableDynamicLighting) {
+            lightEntity = EntityManager.get().create()
+            val shadowSize = settings.shadowResolution
+            LightManager.Builder(LightManager.Type.DIRECTIONAL)
+                .color(1f, 1f, 1f)
+                .intensity(50000f) // Lux
+                .direction(0.6f, 1f, 0.8f)
+                .castShadows(true)
+                .shadowMapSize(shadowSize)
+                .build(engine, lightEntity)
+            scene.addEntity(lightEntity)
+            Timber.d("Native3DEngine: Main light created (shadowSize=$shadowSize)")
+        }
         
-        // Skybox
+        // Ambient light for fill (quality-dependent)
+        if (settings.enableAmbientLight) {
+            lightAmbient = EntityManager.get().create()
+            LightManager.Builder(LightManager.Type.INDIRECT)
+                .intensity(5000f)
+                .build(engine, lightAmbient)
+            scene.addEntity(lightAmbient)
+            Timber.d("Native3DEngine: Ambient light created")
+        }
+        
+        // Skybox (always created)
         Skybox.Builder()
             .color(0.03f, 0.03f, 0.1f, 1f) // Dark blue space
             .build(engine)
             .let { scene.skybox = it }
         
-        Timber.d("Native3DEngine: Lighting created")
+        Timber.d("Native3DEngine: Lighting created (lights: ${if (settings.enableDynamicLighting) 1 else 0} main, ${if (settings.enableAmbientLight) 1 else 0} ambient)")
     }
     
     // ==================== RENDERING LOOP ====================
     
     /**
-     * Start the main rendering loop
-     * Runs at 60 FPS on a dedicated coroutine
+     * Start the main rendering loop with optimized frame pacing
+     * Runs at adaptive FPS on a dedicated coroutine
      */
     private fun startRendering() {
         renderingActive = true
         renderingJob = scope.launch {
-            val frameTimeNanos = (1_000_000_000 / 60).toLong() // 60 FPS
-            var lastFrameNanos = System.nanoTime()
+            lastStatsUpdateNanos = System.nanoTime()
             
             while (renderingActive && isActive) {
                 try {
-                    val now = System.nanoTime()
-                    val deltaTime = (now - lastFrameNanos) / 1_000_000_000f
-                    lastFrameNanos = now
+                    // Begin frame with precise delta time
+                    val deltaTime = framePacer.beginFrame()
                     
-                    // Update animation state
+                    // Update animation state with time-based delta
                     updateAnimation(deltaTime)
                     
-                    // Render frame
+                    // Update material pulse animations
+                    aiCoreMaterial?.updatePulseAnimation(deltaTime)
+                    
+                    // Render frame if surface is ready
                     if (uiHelper.isReadyToRender()) {
                         renderFrame()
                     }
                     
-                    // Sleep to maintain 60 FPS
-                    val elapsed = System.nanoTime() - now
-                    val sleepTime = frameTimeNanos - elapsed
-                    if (sleepTime > 0) {
-                        Thread.sleep(sleepTime / 1_000_000)
+                    // Record frame time for adaptive quality
+                    qualityManager.recordFrameTime(framePacer.getLastFrameTimeNanos())
+                    frameCounter++
+                    
+                    // Check if quality adjustment needed (every 3 seconds)
+                    val now = System.nanoTime()
+                    if (now - lastStatsUpdateNanos > 3_000_000_000L) {
+                        val stats = framePacer.getFrameStats()
+                        val oldQuality = currentQualitySettings?.qualityLevel
+                        
+                        // Get updated quality settings
+                        currentQualitySettings = qualityManager.getQualitySettings()
+                        if (currentQualitySettings?.qualityLevel != oldQuality) {
+                            Timber.i("Native3DEngine: Quality changed to ${currentQualitySettings?.qualityLevel} (P95=${stats.p95FrameTimeMs.toInt()}ms, score=${qualityManager.getPerformanceScore()})")
+                            // Could trigger geometry/light rebuild here if needed
+                        }
+                        
+                        Timber.d(framePacer.getDebugString())
+                        lastStatsUpdateNanos = now
                     }
+                    
+                    // Maintain target frame rate
+                    framePacer.endFrame()
+                    
                 } catch (e: Exception) {
                     Timber.e(e, "Native3DEngine: Rendering error")
                 }
@@ -221,20 +277,23 @@ class Native3DEngine(
     }
     
     /**
-     * Update procedural animation based on elapsed time
+     * Update procedural animation based on elapsed time (not frame count)
+     * Time-based ensures consistency across all frame rates
      */
     private fun updateAnimation(deltaTime: Float) {
-        animationTime += deltaTime
+        // Clamp delta to prevent large jumps (e.g., after pause)
+        val clampedDelta = deltaTime.coerceAtMost(0.033f)  // Max 33ms
+        animationTime += clampedDelta
         
         // Smooth interpolation towards target values
-        val lerpFactor = minOf(1f, deltaTime * 2f) // 0.5s smooth transition
+        val lerpFactor = (clampedDelta * 3f).coerceAtMost(1f) // Smooth but responsive
         
-        // Update rotation
+        // Update rotation with time-based easing
         for (i in 0..2) {
             currentRotation[i] += (targetRotation[i] - currentRotation[i]) * lerpFactor
         }
         
-        // Update scale
+        // Update scale with time-based easing
         currentScale += (targetScale - currentScale) * lerpFactor
         
         // Apply transformations to entity
@@ -309,6 +368,36 @@ class Native3DEngine(
             LightManager.getInstance().setIntensity(lightEntity, intensity)
         }
     }
+    
+    /**
+     * Get current frame rate statistics
+     */
+    fun getFrameStats(): FramePacingManager.FrameStats? {
+        return if (::framePacer.isInitialized) framePacer.getFrameStats() else null
+    }
+    
+    /**
+     * Get current quality level
+     */
+    fun getCurrentQualityLevel(): AdaptiveQualityManager.QualityLevel? {
+        return if (::qualityManager.isInitialized) qualityManager.getCurrentQualityLevel() else null
+    }
+    
+    /**
+     * Get device capabilities report for debugging
+     */
+    fun getDeviceCapabilitiesReport(): String {
+        return if (::qualityManager.isInitialized) {
+            qualityManager.getDeviceCapabilitiesReport()
+        } else {
+            "Quality manager not initialized"
+        }
+    }
+    
+    /**
+     * Get total frames rendered since initialization
+     */
+    fun getFrameCount(): Int = frameCounter
     
     // ==================== LIFECYCLE ====================
     
