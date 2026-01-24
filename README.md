@@ -1676,28 +1676,574 @@ A: "RL learns from rewards. This learns from outcomes observed by the system its
 
 ---
 
-## 🏗️ Engineering Challenges Solved
+## 🏗️ Key Engineering Challenges Solved
 
-SA-AIHOS solves six major engineering challenges that have historically made autonomous AI on mobile impossible:
+SA-AIHOS solves six major engineering challenges that have historically made autonomous AI on mobile devices impossible:
 
-### Challenge 1: **The Interpretability Problem**
+### Challenge 1: The Interpretability Problem
 
-**Problem**: Modern AI systems are black boxes. You can't ask "why did you make that decision?" and get a real answer. This makes users anxious and prevents trust.
+**The Problem**: Modern AI systems are black boxes. Users cannot understand why decisions are made. This creates anxiety, prevents trust, and makes debugging impossible.
 
-**Traditional Approaches**:
-- Attention mechanisms (show what the neural network is focusing on) - still not true explanation
-- Layer visualization - nice to look at, doesn't explain decisions
-- Post-hoc explanation models - add complexity, can be misleading
+**Why It's Hard**:
+- Neural networks encode meaning in 1M+ parameters that are individually meaningless
+- Post-hoc explanation methods (LIME, SHAP) are slower than the original prediction
+- "Explainability" usually means showing what the model is attending to, not *why* it chose an action
 
 **SA-AIHOS Solution**:
-- **Explicit rule-based reasoning** - every decision comes from a human-readable rule
-- **Real-time visualization** - see the thinking happen as 3D animation
-- **Gesture-triggered introspection** - user can ask "why?" and see the exact rule that applied
-- **Outcome measurement** - system shows what it expected vs what actually happened
+```
+Decision-Making Architecture:
+  Rule Condition (human-readable)
+    ↓
+  Option Scoring (transparent math)
+    ↓
+  Decision Selection (highest score wins)
+    ↓
+  Explanation (generated from rule + context)
 
-**Impact**: Users understand the AI. Trust increases. Users can provide feedback that directly influences learning.
+Example:
+  Rule: "if time > 20:00 AND appUsageTime > 120min → send_focus_reminder"
+  Score: 0.75 (rule weight 0.75 × 1.0 recent success rate)
+  Explanation: "User has been using apps for over 2 hours in evening.
+    History shows reminders at this time succeed 75% of the time."
+```
+
+**Result**: Every decision is explainable. Users understand why the AI acted. Users can challenge the reasoning.
+
+**Code Location**: [ReasoningEngine.kt](app/src/main/kotlin/com/aihos/ai/reasoning/ReasoningEngine.kt)
 
 ---
+
+### Challenge 2: Learning Without Cloud Training
+
+**The Problem**: Machine learning requires large labeled datasets and centralized training. This means data must leave the device, which violates privacy and creates dependency on cloud services.
+
+**Why It's Hard**:
+- Traditional supervised learning needs thousands of labeled examples
+- Reinforcement learning needs reward signals (must be provided externally or with difficulty)
+- Transfer learning requires pre-trained models (again, cloud-dependent)
+- Online learning with limited data tends to overfit
+
+**SA-AIHOS Solution**:
+```
+Reflection-Based Learning Loop:
+
+1. Make Decision
+   └─ AI selects action with reasoning: "I think X will achieve goal Y"
+
+2. Observe Outcome
+   └─ System records what actually happened vs what was expected
+
+3. Reflect on Causality
+   ├─ Was the action responsible for the outcome?
+   ├─ Could external factors have caused it?
+   └─ How confident are we? (0-100%)
+
+4. Update Only if Confident
+   ├─ If confidence > 70%: Update rule weight
+   ├─ If 40-70%: Accumulate as evidence
+   └─ If < 40%: Log but don't update yet
+
+5. Evolve Rules
+   ├─ Strengthen rules that succeeded
+   ├─ Weaken rules that failed
+   └─ Create new rules from patterns
+```
+
+**Why This Works**:
+- Learning signal comes from outcomes the system naturally observes
+- No need for external labels or reward signals
+- Confidence threshold prevents false learning from coincidences
+- Each phone learns its own personalized models (no cross-device training needed)
+
+**Result**: The AI learns to improve its own decision-making entirely from local experience.
+
+**Code Location**: [ReflectionEngine.kt](app/src/main/kotlin/com/aihos/ai/reflection/ReflectionEngine.kt), [EvolutionEngine.kt](app/src/main/kotlin/com/aihos/ai/evolution/EvolutionEngine.kt)
+
+---
+
+### Challenge 3: Real-Time Cognition on Mobile
+
+**The Problem**: Sophisticated AI usually requires significant compute. Mobile phones have constrained CPU, memory, and battery. How do you make real-time reasoning possible without destroying battery life?
+
+**Why It's Hard**:
+- AI inference on mobile is usually slow (seconds per decision)
+- Real-time visualization (60 FPS) is expensive
+- Always-running service depletes battery immediately
+- Memory is precious (typical app limit: 200MB, AI system: <50MB)
+
+**SA-AIHOS Solution**:
+```
+Energy-Aware Adaptive System:
+
+Four Energy States:
+  ABUNDANT (>50% battery, plugged in)
+    • Full cognition frequency (every 60ms)
+    • High-quality visualization (60 FPS, full effects)
+    • Aggressive learning (try new rules)
+  
+  NORMAL (20-50% battery, not plugged)
+    • Standard cognition (every 500ms)
+    • Normal visualization (60 FPS, reduced effects)
+    • Moderate learning (only confident updates)
+  
+  LOW (5-20% battery)
+    • Reduced cognition (every 2 seconds)
+    • Simple visualization (30 FPS, minimal effects)
+    • Conservative learning (>80% confidence required)
+  
+  CRITICAL (<5% battery)
+    • Minimal cognition (every 5 seconds)
+    • Essential visualization only (15 FPS)
+    • No learning (preserve battery for user)
+
+Performance Targets:
+  • End-to-end latency (decision → visualization): <100ms
+  • Visualization frame rate: 60 FPS (scales to 30 FPS on low-end)
+  • Memory footprint: 50MB total (including models)
+  • Battery impact: <1% per hour during typical use
+```
+
+**Why This Works**:
+- Energy awareness isn't hardcoded; AI learned these patterns work
+- Graceful degradation: system doesn't break, it just thinks slower
+- Visualization uses procedural generation (algorithm-based, not texture-based)
+- Cognition frequency is optimized for <100ms latency anyway
+
+**Result**: Sophisticated AI reasoning on any Android phone without destroying battery.
+
+**Code Location**: [EnergyManager.kt](app/src/main/kotlin/com/aihos/system/energy/EnergyManager.kt), [ThermalManager.kt](app/src/main/kotlin/com/aihos/system/thermal/ThermalManager.kt)
+
+---
+
+### Challenge 4: Real-Time 3D Visualization of Thinking
+
+**The Problem**: How do you visualize abstract cognitive processes (thinking, reflecting, evolving) in a meaningful way? Most AI visualization is decorative or post-hoc. Can visualization be real-time and actually meaningful?
+
+**Why It's Hard**:
+- Cognitive state is abstract (vectors, probabilities, rule activations)
+- Meaningful visualization requires knowing what to map to visual properties
+- Real-time rendering at 60 FPS is performance-critical
+- The visualization must actually show something, not just look cool
+
+**SA-AIHOS Solution**:
+```
+State-to-Visual Mapping:
+
+Cognitive State Variables:
+  • attention_focus: [0.8, 0.2, 0.1]  (which concerns dominate)
+  • emotional_valence: 0.6             (confidence/uncertainty)
+  • decision_confidence: 0.72           (strength of choice)
+  • contradiction_level: 0.1            (inconsistency in rules)
+  • learning_rate: 0.3                  (how fast rules are changing)
+
+Maps To 3D Geometry:
+  • Core Crystal: Size ∝ attention_focus[0]
+  • Neural Particles: Count ∝ decision_confidence
+  • Energy Aura: Pulsing rate ∝ learning_rate
+  • Distortion: Intensity ∝ contradiction_level
+  • Color: Valence determines hue (cold=uncertain, warm=confident)
+  • Rotation Speed: ∝ cognitive load
+
+Rendering:
+  • Filament engine (high-end) or OpenGL ES (low-end)
+  • Procedural geometry (not precomputed)
+  • Multi-layer rendering (crystal, particles, aura)
+  • Post-processing (bloom, distortion based on state)
+
+Result:
+  • Animation shows real cognitive activity
+  • Can pause and inspect (gesture-triggered)
+  • Changes immediately when thinking changes (reactive)
+  • Looks meaningful because it IS meaningful
+```
+
+**Why This Works**:
+- Mapping is discoverable: users learn what visual changes mean
+- Real-time: visualization updates match reasoning updates
+- Procedural: scales from high-end phones to budget devices
+
+**Result**: First visualization system that shows actual AI thinking, not just decoration.
+
+**Code Location**: [Scene.js](app/src/main/assets/three/Scene.js), [AICore.js](app/src/main/assets/three/AICore.js)
+
+---
+
+### Challenge 5: Safe Self-Modification
+
+**The Problem**: If the AI modifies its own rules, how do you prevent it from:
+- Creating contradictory rules (rule A says do X, rule B says don't)
+- Becoming unstable (constantly changing rules, thrashing)
+- Losing capability (weakening all rules through bad learning)
+- Acting unexpectedly (users can't predict what it will do)
+
+**Why It's Hard**:
+- Rule interactions are complex (rule A can depend on rule B's outcome)
+- Self-modification is rare in software (most systems don't change their own logic)
+- No existing patterns for safe autonomous evolution
+- Difficult to test (behavior changes over time)
+
+**SA-AIHOS Solution**:
+```
+Multi-Layer Safety for Rule Modification:
+
+Layer 1: Confidence Gating
+  • Only update rules if causality confidence > 70%
+  • Otherwise: accumulate evidence until threshold
+  • Prevents learning from coincidences
+
+Layer 2: Contradiction Detection
+  • Before updating rule weight, check for conflicts
+  • Rule A: "if X → do Y" (weight 0.8)
+  • Rule B: "if X → don't do Y" (weight 0.6)
+  • Action: Reduce both weights, add exception rule
+  
+Layer 3: Stability Validation
+  • New rule weight must not differ by >20% from old
+  • If bigger change needed: apply in stages (0.75→0.70→0.65)
+  • Prevents sudden behavioral changes
+
+Layer 4: Audit Logging
+  • Every rule change logged with:
+    ├─ Old weight, new weight
+    ├─ Reason (success, failure, evidence accumulation)
+    ├─ Confidence level
+    ├─ Affected rules (what else changed)
+    └─ Timestamp
+  • Complete undo trail available
+
+Layer 5: User Override
+  • Users can lock rules (prevent modification)
+  • Users can revert to previous rule set
+  • Users can export/import rule sets
+```
+
+**Example of Conflict Resolution**:
+```
+Scenario:
+  Rule 1: "if evening_time → send_reminder" (weight 0.75)
+  Rule 2: "if user_focused → skip_interrupt" (weight 0.70)
+  
+  Learning Event: User dismissed reminder while focused
+  
+  Proposed: Reduce Rule 1 weight to 0.65 (failed case)
+  
+  Conflict Check: Rules 1 & 2 have contradictory effects
+  
+  Resolution:
+    • Reduce Rule 1 to 0.70 (instead of 0.65)
+    • Add exception rule: "if evening AND user_focused → skip_reminder"
+    • Set exception rule weight to 0.50
+    • Result: Both rules kept, but conflict resolved
+```
+
+**Result**: AI can safely evolve its own rules without becoming unstable or unpredictable.
+
+**Code Location**: [EvolutionEngine.kt](app/src/main/kotlin/com/aihos/ai/evolution/EvolutionEngine.kt), [RuleConflictDetector.kt](app/src/main/kotlin/com/aihos/ai/evolution/RuleConflictDetector.kt)
+
+---
+
+### Challenge 6: Device Signal Integration Without Leaks
+
+**The Problem**: To be context-aware, the AI needs to perceive device state (battery, thermal, screen, time, app usage). But reading system signals can cause:
+- Memory leaks (broadcast receivers registered but not unregistered)
+- Battery drain (polling instead of event-driven)
+- Crashes (accessing APIs at wrong times)
+- Permission errors (reading permissions not granted)
+
+**Why It's Hard**:
+- Android lifecycle is complex (activities can be destroyed while listeners are active)
+- Some signals require polling (unavailable as broadcast)
+- Permissions can change at runtime
+- No central place to manage all signal providers
+
+**SA-AIHOS Solution**:
+```
+Lifecycle-Bound Provider Pattern:
+
+Architecture:
+  Activity Lifecycle
+    ↓
+  LifecycleObserver (auto-register on START, auto-unregister on STOP)
+    ↓
+  SystemSignalsManager (coordinator)
+    ├─ BatteryProvider (broadcast receiver)
+    ├─ ScreenStateProvider (broadcast receiver)
+    ├─ NetworkProvider (callback listener)
+    ├─ TemperatureProvider (polling 10s)
+    ├─ TimeOfDayProvider (polling 60s)
+    └─ ForegroundAppProvider (polling 2s)
+    ↓
+  DeviceContext (StateFlow - single source of truth)
+    ├─ batteryLevel: Float
+    ├─ isScreenOn: Boolean
+    ├─ isCharging: Boolean
+    ├─ temperature: Float
+    ├─ timeOfDay: Float
+    ├─ foregroundApp: String
+    └─ Updated in real-time via StateFlow
+    ↓
+  AI Reasoning (observes StateFlow)
+    └─ Receives context updates automatically
+
+Key Safety Features:
+
+1. Lifecycle Binding
+   ```kotlin
+   class SystemSignalsManager : LifecycleObserver {
+     @OnLifecycleEvent(Lifecycle.Event.ON_START)
+     fun onStart() {
+       // Auto-register all providers
+       providers.forEach { it.register() }
+     }
+     
+     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+     fun onStop() {
+       // Auto-unregister all providers
+       providers.forEach { it.unregister() }
+       // → ZERO memory leaks
+     }
+   }
+   ```
+
+2. Graceful Degradation
+   ```kotlin
+   fun getSignal(type: SignalType): Signal {
+     return try {
+       provider.readSignal(type)
+     } catch (e: SecurityException) {
+       Signal.DEFAULT  // Safe fallback if permission denied
+     } catch (e: Exception) {
+       Signal.DEFAULT  // Safe fallback if API unavailable
+     }
+   }
+   ```
+
+3. Throttling
+   ```kotlin
+   // Battery: Update only on 5% change
+   throttle(minDelta = 5f)
+   
+   // Temperature: Poll every 10 seconds max
+   throttle(intervalMs = 10_000)
+   
+   // Time: Update every 60 seconds
+   throttle(intervalMs = 60_000)
+   ```
+
+4. Testing
+   ```kotlin
+   @Test
+   fun testSignalProviderUnregistersOnStop() {
+     // Mock lifecycle
+     val lifecycle = TestLifecycleOwner()
+     val manager = SystemSignalsManager(lifecycle)
+     
+     // Verify registered on START
+     manager.onStart()
+     verify(mockProvider).register()
+     
+     // Verify unregistered on STOP
+     manager.onStop()
+     verify(mockProvider).unregister()
+   }
+   ```
+```
+
+**Result**: Device signals safely integrated without memory leaks, battery drain, or crashes.
+
+**Code Location**: [SystemSignalsManager.kt](app/src/main/kotlin/com/aihos/system/signals/SystemSignalsManager.kt), [app/src/main/kotlin/com/aihos/system/signals/providers/](app/src/main/kotlin/com/aihos/system/signals/providers/)
+
+---
+
+## ⚖️ Design Trade-Offs and Constraints
+
+Every system design involves trade-offs. Here are the key decisions made in SA-AIHOS and the reasoning:
+
+### Trade-Off 1: Interpretability vs. Sophistication
+
+**Decision**: Prioritize interpretability over raw decision-making power
+
+**What We Chose**:
+- Rule-based reasoning (humans can read the rules)
+- Explicit condition matching (transparent logic)
+- Explainable scores (visible math)
+
+**What We Gave Up**:
+- Neural networks (more sophisticated but opaque)
+- Deep learning (more powerful but uninterpretable)
+- Probabilistic reasoning (more nuanced but harder to understand)
+
+**Justification**: 
+Users need to understand why AI makes decisions. A simple rule that works and is explainable is better than a sophisticated neural network that works but is a black box.
+
+**Code Example**:
+```kotlin
+// Interpretable: Rule with readable condition
+Rule(
+  name = "focus_reminder_evening",
+  condition = "time > 20:00 AND appUsageTime > 120min",
+  action = "send_focus_reminder",
+  weight = 0.75
+)
+
+// vs. Uninterpretable: Neural network
+neuralNet.input(vector(time, appUsageTime))
+neuralNet.forward() → output probability
+// "Why did it decide this?" → Can't easily explain
+```
+
+---
+
+### Trade-Off 2: On-Device Learning vs. Rapid Improvement
+
+**Decision**: Prioritize on-device, privacy-preserving learning over rapid optimization
+
+**What We Chose**:
+- Learn from local experience only
+- No cloud training or centralized optimization
+- Data never leaves device
+- Slower, more conservative learning
+
+**What We Gave Up**:
+- Transfer learning (using models trained on millions of users)
+- Federated learning (aggregated patterns from all devices)
+- Rapid A/B testing (testing hypotheses at scale)
+- State-of-the-art performance (probably not as optimized as cloud-trained models)
+
+**Justification**:
+Privacy is essential. Users should own their data. The AI learning from local experience is valuable even if it's slower.
+
+---
+
+### Trade-Off 3: Constrained Domain vs. Generality
+
+**Decision**: Focus on specific domain (wellness/focus) instead of general-purpose AI
+
+**What We Chose**:
+- Rules specific to wellness/productivity domain
+- Limited action space (notifications, UI changes, etc.)
+- Optimized for one problem
+
+**What We Gave Up**:
+- General-purpose AI (can't easily adapt to other domains)
+- Broad action space (can't control arbitrary apps)
+- Transfer to other use cases
+
+**Justification**:
+General-purpose AI is harder to make safe and interpretable. Focusing on one domain lets us optimize deeply and ensure safety.
+
+---
+
+### Trade-Off 4: Exact Outcome Verification vs. Probabilistic Inference
+
+**Decision**: Require strong causal evidence before learning (>70% confidence)
+
+**What We Chose**:
+- Conservative learning (only update when causality is clear)
+- Long convergence time (rules improve slowly)
+- False negatives (miss some learning opportunities)
+
+**What We Gave Up**:
+- Rapid learning (learn from weak signals)
+- Probabilistic reasoning (handle uncertainty elegantly)
+- Short feedback loops
+
+**Justification**:
+False learning is worse than missing learning. If the AI learns wrong patterns, it could develop bad habits. Better to learn slowly and correctly.
+
+---
+
+### Trade-Off 5: Procedural Visualization vs. Detailed Accuracy
+
+**Decision**: Use procedural generation for visualization (algorithm-based, not data-based)
+
+**What We Chose**:
+- Geometry generated from cognitive state in real-time
+- Scalable to all devices (algorithm is simple)
+- Guaranteed to match state (not cached)
+
+**What We Gave Up**:
+- Photorealistic rendering (complex textures, precise geometry)
+- Animation polish (hand-crafted curves)
+- Visual detail
+
+**Justification**:
+Procedural generation scales to low-end phones. It also guarantees that visualization matches actual state (no desync). Visual simplicity is acceptable because the meaning is clear.
+
+---
+
+### Trade-Off 6: Monolithic Service vs. Microservices
+
+**Decision**: Single foreground service with integrated subsystems
+
+**What We Chose**:
+- One service process (simpler to manage lifecycle)
+- Integrated modules (clear dependencies, easy to debug)
+- Shared state (not distributed)
+
+**What We Gave Up**:
+- Modularity (each subsystem could be independent service)
+- Scalability (can't easily split cognition across multiple processes)
+- Fault isolation (one crash affects whole system)
+
+**Justification**:
+A single service is simpler and has lower overhead. For a single-device system, distribution is overkill. Shared state is easier to reason about.
+
+---
+
+## 🎓 What You Can Learn From This Project
+
+### If You're an Android Developer
+- Jetpack Compose best practices (real-time state, animations, custom rendering)
+- Lifecycle-aware components (safe pattern for managing resources)
+- Coroutines and Flow (async, reactive architecture)
+- Foreground services (always-on background processing)
+- Performance optimization (60 FPS rendering, <100ms latency)
+- Memory profiling and optimization
+
+### If You're an AI/ML Researcher
+- Reflection-based learning (learning from outcomes without external labels)
+- Rule-based reasoning (interpretable decision-making)
+- Online learning (adaptation over time without retraining)
+- Contradiction detection and resolution (maintaining coherence in evolving rule sets)
+- Visualization of AI reasoning (making black-box systems interpretable)
+
+### If You're a Systems Architect
+- Layered architecture (clean separation of concerns)
+- State machines (complex behavior with guaranteed correctness)
+- Resource-constrained design (performance and battery awareness)
+- Error recovery (graceful degradation)
+- Extensibility patterns (how to make systems future-proof)
+
+### If You're a UX Designer
+- Gesture-based interaction (beyond touch, buttons, and sliders)
+- Embodied cognition (making abstract concepts visual)
+- Real-time feedback (showing system state, not just outputs)
+- Calm technology (designing for always-on without intrusiveness)
+- Accessibility (making AI systems understandable to non-experts)
+
+---
+
+## 📖 Where To Go For More Detail
+
+**For a comprehensive introduction to the entire system:**
+→ Read [FINAL_OVERVIEW.md](FINAL_OVERVIEW.md) (30 minutes)
+
+**For detailed architecture and data flow:**
+→ Read [ARCHITECTURE_EXPLAINED.md](ARCHITECTURE_EXPLAINED.md) (45 minutes)
+
+**For the formal system specification:**
+→ Read [docs/SYSTEM_DEFINITION.md](docs/SYSTEM_DEFINITION.md) (60+ minutes)
+
+**For code implementation details:**
+→ Check the code files linked throughout this document
+
+**For research applications:**
+→ See [USE_CASES.md](USE_CASES.md) and [FUTURE_VISION.md](FUTURE_VISION.md)
+
+---
+
+## 🎯 How to Explain This Project in Interviews
 
 ### Challenge 2: **The Learning Problem**
 
