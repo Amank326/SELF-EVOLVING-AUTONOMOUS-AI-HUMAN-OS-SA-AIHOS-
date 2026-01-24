@@ -15,6 +15,9 @@ import com.aihos.data.db.SAIHOSDatabase
 import com.aihos.data.repository.MemoryRepository
 import com.aihos.domain.use_case.AIBrainUseCase
 import com.aihos.domain.use_case.impl.AIBrainUseCaseImpl
+import com.aihos.system.demo.DemoModeManager
+import com.aihos.system.demo.DemoModeEnforcer
+import com.aihos.system.demo.DemoSessionManager
 import com.aihos.system.energy.EnergyManager
 import com.aihos.system.energy.ThermalManager
 import com.aihos.system.energy.impl.EnergyManagerImpl
@@ -143,4 +146,24 @@ object Module {
     fun provideMemoryRepository(database: SAIHOSDatabase): MemoryRepository {
         return MemoryRepository(database.memoryDao())
     }
+
+    // ===== Demo Mode System =====
+
+    @Singleton
+    @Provides
+    fun provideDemoModeManager(): DemoModeManager = DemoModeManager()
+
+    @Singleton
+    @Provides
+    fun provideDemoModeEnforcer(
+        demoModeManager: DemoModeManager,
+        scope: CoroutineScope
+    ): DemoModeEnforcer = DemoModeEnforcer(demoModeManager, scope)
+
+    @Singleton
+    @Provides
+    fun provideDemoSessionManager(
+        demoModeManager: DemoModeManager,
+        scope: CoroutineScope
+    ): DemoSessionManager = DemoSessionManager(demoModeManager, scope)
 }
