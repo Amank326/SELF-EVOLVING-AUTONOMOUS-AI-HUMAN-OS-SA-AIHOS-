@@ -620,6 +620,106 @@ semantic_facts {
 
 ---
 
+## 🏗️ Clean Architecture Design
+
+SA-AIHOS follows clean architecture principles with clear layer separation and unidirectional dependencies.
+
+### Architecture Overview
+
+```
+┌────────────────────────────────────────────────────────┐
+│  UI Layer (Android-Specific)                           │
+│  ├─ Jetpack Compose Screens                           │
+│  ├─ ViewModels (UI state only, no AI logic)           │
+│  └─ UI Components                                      │
+└────────┬─────────────────────────────────────────────┘
+         ↑ observes
+         │
+┌────────┴─────────────────────────────────────────────┐
+│  Domain Layer (Pure Business Logic)                   │
+│  ├─ Use Cases (AIBrain, Decision, Reflection, etc.)  │
+│  ├─ Domain Models (DecisionRecord, CognitiveState)   │
+│  └─ Interfaces (no Android dependencies)              │
+└────────┬─────────────────────────────────────────────┘
+         │ uses
+    ┌────┴──────────────┬─────────────────┐
+    ↓                   ↓                  ↓
+┌─────────────┐   ┌─────────────────┐  ┌──────────────┐
+│ System      │   │ Graphics        │  │ Data         │
+│ Layer       │   │ Layer           │  │ Layer        │
+│ ├─ Signals  │   │ ├─ Rendering    │  │ ├─ Database  │
+│ ├─ Energy   │   │ ├─ Mapping      │  │ └─ Repos.    │
+│ └─ Thermal  │   │ └─ Bridges      │  │              │
+└─────────────┘   └─────────────────┘  └──────────────┘
+```
+
+### Layer Responsibilities
+
+| Layer | Purpose | Dependencies |
+|-------|---------|--------------|
+| **UI** | Android-specific presentation | ViewModels, Compose |
+| **Domain** | Pure business logic (testable) | Nothing (no Android) |
+| **System** | Device signals & constraints | No cross-layer deps |
+| **Graphics** | 3D rendering & visualization | Domain models only |
+| **Data** | Persistence and repositories | Domain models |
+
+### Key Design Principles
+
+**1. Unidirectional Dependencies**
+```
+UI → Domain ✅
+Domain → UI ❌
+Domain → Android APIs ❌
+```
+
+**2. Separation of Concerns**
+- **Domain**: Thinks (AI logic)
+- **System**: Senses (device signals)
+- **Graphics**: Shows (visualization)
+- **UI**: Presents (Android screens)
+- **Data**: Remembers (persistence)
+
+**3. Dependency Injection**
+All objects created in `di/Module.kt` with Hilt. Easy to mock for testing.
+
+**4. State Flow Architecture**
+```
+Domain StateFlow → ViewModel (read-only) → Screen → Recompose
+```
+State flows down, never backwards.
+
+### Development Guide
+
+**Adding a new feature?**
+
+1. Define domain model in `domain/model/`
+2. Define use case in `domain/use_case/`
+3. Implement in concrete packages
+4. Register in `di/Module.kt`
+5. Expose via ViewModel
+6. Create UI screens
+
+**Testing a use case?**
+
+```kotlin
+@Test
+fun testAIDecision() {
+    // Mock system dependencies
+    val mockSignals = mock<SignalCollector>()
+    
+    // Create use case
+    val aiUseCase = AIBrainUseCaseImpl(mockSignals, ...)
+    
+    // Test (no Android needed)
+    val state = aiUseCase.cognitiveState.value
+    assertTrue(state.executionPhase == THINKING)
+}
+```
+
+**For detailed architecture documentation**, see [docs/ARCHITECTURE_REFACTORING.md](docs/ARCHITECTURE_REFACTORING.md).
+
+---
+
 ## 📚 Research Applications & Use Cases
 
 ### Cognitive Science Research
