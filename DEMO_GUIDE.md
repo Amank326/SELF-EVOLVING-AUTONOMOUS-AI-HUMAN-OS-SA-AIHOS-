@@ -6,8 +6,27 @@
 
 ---
 
+## ⚡ IMPORTANT: Enable Demo Mode First!
+
+**Before you demo, enable demo mode for predictable behavior:**
+
+1. Launch app
+2. Open **Settings** → **Demo Mode**
+3. Select one of these presets:
+   - 🎬 **Quick Demo** (3-min, safest for live demos)
+   - 📱 **Screen Recording** (ultra-predictable for recordings)
+   - 🎤 **Live Presentation** (balanced, allows 1 hour)
+   - 🔧 **Dev Demo** (shows realistic behavior + learning)
+
+**Demo Mode freezes evolution** so the AI behaves consistently throughout your demo. Without it, the AI's behavior can change unexpectedly, which is cool but confusing for observers.
+
+**Result**: AI still thinks, reflects, and responds to you—but won't unexpectedly change its decision rules mid-presentation.
+
+---
+
 ## 🎯 Pre-Demo Checklist
 
+- [ ] **Demo Mode enabled** (Settings → Demo Mode → select preset)
 - [ ] App running on emulator or device
 - [ ] Battery > 50% (or plugged in)
 - [ ] Screen brightness at 80%+ (colors pop more)
@@ -15,6 +34,7 @@
 - [ ] Know the 6 gesture types cold (see Gesture Quick Reference)
 - [ ] Have talking points memorized for smooth delivery
 - [ ] If presenting remotely, test screen share first
+- [ ] Check that AI state indicator is visible (top-right corner)
 
 ---
 
@@ -29,11 +49,13 @@
 - Show the app home screen
 - 3D object rotating slowly in center
 - Calm cyan glow (IDLE state)
+- **Point to state indicator in top-right**: "Watch this color indicator—it shows you what the AI is thinking right now. Green = idle, blue = thinking, orange = reflecting, red = evolving."
 
 **Why This Works:**
 - Immediately shows: "This is different from ChatGPT"
 - Visual differentiation: 3D, not text
 - Suggests: "AI is alive, conscious, observing"
+- State indicator makes thinking observable and legible
 
 ---
 
