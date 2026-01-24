@@ -59,6 +59,11 @@ interface TimeOfDaySignal : Signal<Float>
 interface NetworkSignal : Signal<Boolean>
 
 /**
+ * Idle vs active user interaction state.
+ */
+interface InteractionStateSignal : Signal<String>
+
+/**
  * Aggregated device context from multiple signals.
  * Provides a unified view of the device state.
  */
