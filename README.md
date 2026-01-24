@@ -14,6 +14,7 @@
 | I want to... | Start here |
 |--------------|-----------|
 | **See a demo** | [DEMO_GUIDE.md](DEMO_GUIDE.md) — 3-minute script with talking points |
+| **Run a demo safely** | [#-demo-mode-for-presentations] below — Predictable AI behavior, real-time state visualization |
 | **Understand the vision** | [Project Vision](#-project-vision) below |
 | **Learn about use cases** | [USE_CASES.md](USE_CASES.md) — Real-world applications |
 | **Explain in an interview** | [How to Explain](#-how-to-explain-this-project-in-interviews) section below |
@@ -313,6 +314,91 @@ class MainActivity : AppCompatActivity() {
 4. **Observable learning** as the AI improves from interaction
 
 **Demo script, gesture guide, troubleshooting, and audience-specific variations included.**
+
+---
+
+## ⚡ Demo Mode: Safe, Observable AI for Presentations
+
+**Running a presentation or screen recording? Demo Mode makes AI behavior predictable and observable.**
+
+### What Demo Mode Does
+
+| Feature | Benefit |
+|---------|---------|
+| **Predictable Timing** | AI cognition cycles slow to 2-4 second intervals (configurable) |
+| **Real-Time State Indicator** | Watch AI states cycle: IDLE → THINKING → REFLECTING → EVOLVING |
+| **Frozen Evolution** | Long-term learning is paused (no surprise adaptations) |
+| **Smooth Transitions** | State changes include visible delays for audience comprehension |
+| **Session Telemetry** | Track demo metrics (cycles, state transitions, frozen attempts) |
+| **One-Tap Presets** | 4 preset configs: Quick (3min), Screen Recording (calm), Live Presentation (slower), Dev (real behavior) |
+
+### How to Use Demo Mode
+
+**Enable Demo Mode:**
+1. Open the app and tap **Settings**
+2. Navigate to **Demo Mode**
+3. Select a preset: 
+   - **Quick Demo** — 3-minute demo with 2-second cycle intervals
+   - **Screen Recording** — Calm behavior, frozen evolution, explicit state transitions (best for videos)
+   - **Live Presentation** — Slower cycles (4s), visible delays, suitable for talks
+   - **Dev Demo** — Real behavior with observability (for developers/judges)
+4. Tap **Enable**
+
+**Watch the AI State:**
+- Look for the **AICognitiveStateIndicator** in the top-right corner
+- Colors indicate: 🟢 IDLE | 🔵 THINKING | 🟠 REFLECTING | 🔴 EVOLVING | ⚪ PAUSED
+- Smooth color animations show cognitive progress
+
+**Switch Presets Mid-Demo:**
+- Go to Settings → Demo Mode
+- Select a different preset
+- Changes apply immediately (no restart needed)
+
+**Advanced Configuration:**
+- Tap **Advanced Settings** to fine-tune:
+  - Cognition interval (1-10 seconds)
+  - State transition duration (100-1500ms)
+  - Toggles: Freeze evolution, freeze reflection, slow transitions, verbose logging
+
+**View Session Statistics:**
+- After demo ends, check **Session Report** for:
+  - Total cognition cycles
+  - Average state duration
+  - Frozen evolution/reflection attempts (showing Demo Mode enforcement)
+  - State transition count
+
+### Full Documentation
+
+- **For Demo Scripts**: [DEMO_GUIDE.md](DEMO_GUIDE.md) — 3-minute script with talking points for each preset
+- **For Customization**: [DemoModeSettingsScreen.kt](app/src/main/kotlin/com/aihos/ui/screens/DemoModeSettingsScreen.kt) — Full settings UI
+- **For Implementation Details**: [DemoMode.kt](app/src/main/kotlin/com/aihos/system/demo/DemoMode.kt) — Core system
+
+### Key Guarantees
+
+✅ **Safe**: Demo Mode is optional and fully reversible (no state lost)
+✅ **Non-invasive**: Doesn't modify core AI behavior or learning capability
+✅ **Observable**: Real-time state visualization via AICognitiveStateIndicator
+✅ **Flexible**: Switch presets mid-demo, fine-tune any parameter
+✅ **Transparent**: Session telemetry shows exactly what Demo Mode enforced
+
+### Demo Mode Architecture
+
+```
+User selects preset (DemoPresetsPanel)
+        ↓
+DemoModeManager loads configuration (StateFlow)
+        ↓
+AICognitiveStateIndicator displays state (reactive composables)
+        ↓
+DemoModeEnforcer applies constraints to cognition:
+  - Throttles cycles (minimum wait before next cognition)
+  - Freezes evolution/reflection (canEvolve/canReflect checks)
+  - Delays state transitions (slow animations)
+        ↓
+DemoSessionManager tracks telemetry
+        ↓
+Session Report shows metrics after demo
+```
 
 ---
 
