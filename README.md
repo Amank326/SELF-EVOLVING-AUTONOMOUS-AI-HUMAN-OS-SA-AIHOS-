@@ -720,7 +720,49 @@ fun testAIDecision() {
 
 ---
 
-## 📚 Research Applications & Use Cases
+## �️ AI Cognition Loop Safety & Stability
+
+The core cognitive loop (Think → Act → Reflect → Evolve) includes comprehensive safety mechanisms to ensure deterministic, bounded, and stable execution:
+
+### Five Safety Layers
+
+1. **State Machine (FSM)** - 9 states with 22 explicitly defined transitions
+2. **Loop Boundaries** - Cycle limits (1M), timeout detection (5s), frequency enforcement (16ms)
+3. **Reflection Safety** - Gating (every 10 cycles), depth limiting (1 level max)
+4. **Evolution Safety** - Confidence gating (>0.7), rule limits (3 max), stability validation
+5. **Error Recovery** - Graceful degradation with 5 recovery strategies
+
+### Key Guarantees
+
+| Safety Goal | Mechanism | Result |
+|------------|-----------|--------|
+| **Deterministic States** | FSM validation of all transitions | Invalid transitions caught and logged |
+| **Bounded Execution** | Max 1M cycles (~4.6 hours) | System stops at defined limit |
+| **Phase Timeout** | 5-second timeout detection | Stuck phases detected and recovered |
+| **CPU Efficiency** | 16ms minimum cycle duration | ~60 FPS target, bounded CPU usage |
+| **Reflection Safety** | Reflection every 10 cycles max | Prevents reflection cascades |
+| **Evolution Stability** | Max 3 rules/event, stability >= 0.5 | Prevents rule set destabilization |
+| **Crash Prevention** | Error recovery with backoff | System never hangs or crashes |
+
+### Safety Documentation
+
+- 📖 **[COGNITION_LOOP_SAFETY.md](docs/COGNITION_LOOP_SAFETY.md)** (11 sections, 1,000+ lines)
+  - Complete FSM documentation with state transition tables
+  - Loop boundary enforcement with calculations
+  - Reflection and evolution safety mechanisms
+  - Error recovery protocols
+  - Performance targets and monitoring guide
+  - Testing strategy and sample code
+
+- 📖 **[COGNITION_LOOP_STABILIZATION_ANALYSIS.md](docs/COGNITION_LOOP_STABILIZATION_ANALYSIS.md)** (8 gaps, 5 priorities, implementation guide)
+  - Safety gap analysis
+  - Stabilization priorities and effort estimates
+  - Implementation phases and code examples
+  - Success criteria and testing strategy
+
+---
+
+## �📚 Research Applications & Use Cases
 
 ### Cognitive Science Research
 
@@ -976,6 +1018,8 @@ fun MyScreen() {
 📖 [ARCHITECTURE_REFACTOR_SUMMARY.md](ARCHITECTURE_REFACTOR_SUMMARY.md) - Complete refactor details  
 📖 [ARCHITECTURE_QUICK_REFERENCE.md](ARCHITECTURE_QUICK_REFERENCE.md) - Developer reference guide  
 📖 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Detailed architecture documentation
+📖 [docs/COGNITION_LOOP_SAFETY.md](docs/COGNITION_LOOP_SAFETY.md) - AI cognition loop safety enforcement
+📖 [docs/COGNITION_LOOP_STABILIZATION_ANALYSIS.md](docs/COGNITION_LOOP_STABILIZATION_ANALYSIS.md) - Safety analysis & implementation guide
 
 ---
 
