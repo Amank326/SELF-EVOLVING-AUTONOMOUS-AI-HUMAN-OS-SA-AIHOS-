@@ -1651,5 +1651,406 @@ Use the AI system in production at your own risk. All autonomous actions are log
 
 ---
 
+---
+
 **Let SA-AIHOS evolve. Watch it learn. Understand how it thinks.**
+
+---
+
+## 📚 Research & Publication Readiness
+
+SA-AIHOS is a research artifact designed to advance understanding of autonomous AI systems on resource-constrained platforms. This section describes its research contributions and academic positioning.
+
+### Research Contributions
+
+**Primary Contributions**:
+
+1. **Closed-Loop Learning Without External Supervision** (Methodology)
+   - Demonstrates that autonomous agents can learn from outcome observation alone
+   - No external labels, reward functions, or cloud infrastructure required
+   - THINK-ACT-REFLECT-EVOLVE cycle formalizes the mechanism
+   - Reference: [SYSTEM_MODEL.md](SYSTEM_MODEL.md) Section 4
+
+2. **Energy-Aware Cognition with Metacognitive Learning** (Systems Design)
+   - Integrates constraint awareness into reasoning, not as external throttling
+   - System learns which operations are expensive and when to defer them
+   - Demonstrates 4-state energy model and 5-state thermal model
+   - Reference: [PAPER_DRAFT.md](PAPER_DRAFT.md) Section 5
+
+3. **Interpretability by Architectural Design** (Explainability)
+   - Achieves interpretability through explicit rule-based reasoning
+   - Avoids post-hoc explanation methods and black-box models
+   - Real-time visualization couples to actual internal state
+   - Reference: [PAPER_DRAFT.md](PAPER_DRAFT.md) Section 6
+
+4. **System-Level Mobile AI Integration** (Systems Architecture)
+   - Demonstrates feasibility of persistent autonomous AI on resource-limited devices
+   - 6-layer architecture showing separation of concerns
+   - Constraint management across energy, thermal, and platform layers
+   - Reference: [ARCHITECTURE_EXPLAINED.md](ARCHITECTURE_EXPLAINED.md)
+
+5. **Procedural Visualization of Cognitive State** (Human-Computer Interaction)
+   - Generates visualization geometry directly from internal state
+   - Provides real-time visual feedback on reasoning quality and learning progress
+   - Enables gesture-based interaction with cognition
+   - Reference: [PAPER_DRAFT.md](PAPER_DRAFT.md) Section 6
+
+### Academic Positioning
+
+**Related Research Areas**:
+- Explainable AI (XAI) and interpretability
+- Online learning and adaptive systems
+- Mobile and edge computing
+- Autonomous agents and multi-agent systems
+- Human-AI interaction (HCI)
+- Energy-aware computing
+
+**Positioning Within Each Area**:
+
+| Area | How SA-AIHOS Contributes |
+|------|--------------------------|
+| **XAI** | Demonstrates explainability through design, not post-hoc explanation |
+| **Online Learning** | Shows practical online learning without external supervision in real-world domain |
+| **Mobile AI** | Addresses constraint awareness as part of reasoning, not external throttling |
+| **Autonomous Agents** | Formalizes self-evolution mechanism with contradiction detection |
+| **HCI** | Explores visualization as integral part of AI system, not auxiliary interface |
+| **Energy Computing** | Demonstrates learning energy costs and adapting behavior accordingly |
+
+### Publication-Ready Documentation
+
+The system includes comprehensive documentation suitable for academic dissemination:
+
+- **[PAPER_DRAFT.md](PAPER_DRAFT.md)**: Full research paper (8,000+ lines)
+  - Abstract, introduction, related work, system architecture
+  - Detailed technical contributions and evaluation framework
+  - Discussion of limitations and future work
+  - Written in neutral academic English, suitable for journal submission
+
+- **[SYSTEM_MODEL.md](SYSTEM_MODEL.md)**: Formal system specification (3,000+ lines)
+  - Mathematical definitions of all components
+  - State machines and formal algorithms
+  - Constraint satisfaction proofs
+  - Ready for theoretical analysis and extension
+
+- **[ARCHITECTURE_EXPLAINED.md](ARCHITECTURE_EXPLAINED.md)**: Technical architecture
+  - 6-layer system decomposition
+  - Component responsibilities and interactions
+  - Data flow examples with real scenarios
+  - Design decision justifications
+
+---
+
+## 🔬 How This System Can Be Extended or Studied
+
+### Research Extension Points
+
+#### 1. Theoretical Analysis
+**Open Questions**:
+- Under what conditions does the THINK-ACT-REFLECT-EVOLVE loop converge to optimal behavior?
+- What convergence rate should we expect? (learning speed bounds)
+- Can we prove properties about rule coherence? (formal verification)
+- How does learning rate α and punishment rate β affect stability?
+
+**Research Approach**:
+- Apply convergence analysis from online learning theory
+- Use SAT solvers for rule coherence verification
+- Empirical analysis of learning curves across problem domains
+- Sensitivity analysis of learning parameters
+
+#### 2. Interpretability Validation
+**Open Questions**:
+- Do users actually understand rule-based decisions better than neural network explanations?
+- Does visualization aid understanding? (empirical HCI study)
+- Can users predict the system's next decision? (comprehension metric)
+- Do contradictions in rule sets hurt user trust?
+
+**Research Approach**:
+- User studies comparing rule explanations to other XAI methods
+- Eye-tracking during visualization observation
+- Think-aloud protocols while interacting with introspection
+- Quantitative comprehension tests
+
+#### 3. Learning Efficiency
+**Open Questions**:
+- How many interactions needed to learn effective rules? (sample complexity)
+- How does performance scale with rule set size?
+- Can transfer learning help? (learning rules on one device, transfer to another)
+- What's the role of outcome measurement quality in learning?
+
+**Research Approach**:
+- Benchmark against RL baselines on standard environments
+- Systematic variation of outcome measurement noise
+- Cross-device transfer experiments
+- Scaling analysis as rule count increases
+
+#### 4. Energy and Thermal Modeling
+**Open Questions**:
+- Can we build accurate predictive models of operation costs? (energy modeling)
+- Does thermal prediction prevent throttling events? (empirical validation)
+- What's the optimal balance between cognitive quality and energy conservation?
+- Can the system learn energy costs faster with better instrumentation?
+
+**Research Approach**:
+- Detailed power profiling with hardware measurement tools
+- Thermal modeling using differential equations (thermal RC networks)
+- Game-theoretic analysis of quality/energy tradeoffs
+- Active learning for efficient cost discovery
+
+#### 5. Visualization and Cognition
+**Open Questions**:
+- Does procedural visualization improve understanding over static displays?
+- What's the optimal state-to-visual mapping? (design space exploration)
+- Can visualization aid the learning process? (feedback loops)
+- Does gesture interaction improve user agency and trust?
+
+**Research Approach**:
+- Comparative studies of visualization designs
+- A/B testing different state-to-visual mappings
+- Quantitative measures of learning improvement with visualization
+- Interaction logging and behavior analysis
+
+### Benchmark and Evaluation Frameworks
+
+#### Framework 1: Learning Efficiency Benchmark
+
+**Objective**: Measure how quickly SA-AIHOS learns effective behavior
+
+**Metrics**:
+- Cycles to threshold performance (when success score > 0.8)
+- Rule discovery rate (new rules learned per 1000 cycles)
+- Convergence stability (variance in rule confidences over time)
+- Transfer efficiency (learning on similar tasks)
+
+**Baseline Comparisons**:
+- Simple hardcoded policies
+- Tabular reinforcement learning
+- Standard online learning algorithms
+
+**Implementation**:
+- Define standardized task environments
+- Measure learning curves across task families
+- Compute statistical significance of differences
+- Publish benchmark suite for reproducible research
+
+#### Framework 2: Interpretability Evaluation
+
+**Objective**: Measure how well humans understand system reasoning
+
+**Metrics**:
+- Comprehension score (questions answered correctly about why decisions made)
+- Prediction accuracy (users predict next decision)
+- Trust score (post-interaction questionnaire)
+- Error detection rate (identifying bugs in rule set)
+
+**Baselines**:
+- Neural network attention visualization
+- LIME/SHAP explanations
+- Natural language explanations
+- No explanations (baseline)
+
+**Implementation**:
+- Recruit participants (n=30+)
+- Show system making decisions
+- Ask comprehension questions
+- Measure both speed and accuracy
+- Qualitative feedback interviews
+
+#### Framework 3: Resource Utilization Benchmark
+
+**Objective**: Measure energy and thermal efficiency
+
+**Metrics**:
+- Battery drain rate (% per hour, by energy state)
+- Thermal evolution (temperature over time)
+- CPU utilization (%, by cognition frequency)
+- GPU utilization (%, by visualization quality)
+- Memory footprint (MB, by rule count)
+
+**Comparison Points**:
+- Baseline (no AI running)
+- High-frequency cognition (no energy adaptation)
+- Full visualization (no quality scaling)
+- Static policies (no learning)
+
+**Measurement**:
+- Hardware power monitoring (if available)
+- OS-level energy estimation APIs
+- Thermal zone sensors
+- CPU/GPU profilers
+
+#### Framework 4: Extensibility Validation
+
+**Objective**: Measure ease of extending the system
+
+**Metrics**:
+- Lines of code to add new perception signal
+- Lines of code to implement custom learning behavior
+- Lines of code to add visualization feature
+- Documentation clarity (comprehension test on code)
+
+**Test Cases**:
+- Add new sensor (e.g., accelerometer, microphone)
+- Implement different learning rule update strategy
+- Create custom visualization for new cognitive state
+- Build external app using intent protocol
+
+### Study Design Templates
+
+#### Study Template 1: Comparative Interpretability Study
+
+```
+Research Question: Do rule-based explanations improve comprehension vs. neural attention?
+
+Design:
+- Between-subjects study (N=60, n=30 per group)
+- IV: Explanation type (rules vs. attention heatmaps)
+- DV: Comprehension score, decision prediction accuracy, response time, trust
+
+Procedure:
+1. Participant watches AI make 5 decisions in context
+2. For each decision: shown explanation in assigned format
+3. Asked 3 comprehension questions (must answer correctly)
+4. Predicted next decision
+5. Post-study: trust and confidence questionnaire
+
+Analysis:
+- ANOVA on comprehension scores
+- Logistic regression on prediction accuracy
+- Qualitative analysis of open-ended feedback
+
+Expected Outcome: Rules ⟹ higher comprehension than attention-based explanations
+```
+
+#### Study Template 2: Learning Curve Empirical Study
+
+```
+Research Question: How quickly does SA-AIHOS learn on standard RL benchmarks?
+
+Design:
+- Within-subjects: same learning algorithm on CartPole, MountainCar, Acrobot
+- Compare: SA-AIHOS, DQN (deep RL), SARSA (tabular RL), random policy
+
+Procedure:
+1. Train each algorithm for 5000 episodes
+2. Record: episode reward, rule count, rule changes per 100 episodes
+3. Test: 100 episodes of fixed policy, measure average reward
+
+Analysis:
+- Plot learning curves (reward vs. episode)
+- Compare convergence speed and final performance
+- Analyze variance across runs (error bars)
+- Statistical test (t-test) on final performance
+
+Expected Outcome: SA-AIHOS competitive with RL on simple domains, slower on complex
+```
+
+#### Study Template 3: Energy Profiling Study
+
+```
+Research Question: How much energy is consumed by different cognition operations?
+
+Design:
+- Full factorial: 4 energy states × 5 cognition operations × 3 devices
+- Measure: power, temperature, CPU/GPU utilization
+
+Procedure:
+1. Flash test image on device with power monitoring enabled
+2. Run each operation 100 times at each energy state
+3. Record: power (W), temperature (°C), utilization (%)
+4. Calculate: operation cost (mJ), thermals (°C/s)
+
+Analysis:
+- Cost matrix: operation × device
+- Regression: cost = f(operation, device, energy_state)
+- Identify high-cost operations and devices
+- Validate against system's learned cost estimates
+
+Expected Outcome: Clear cost hierarchy; cost model improves with learning
+```
+
+### Open Research Questions
+
+**For the Community**:
+
+1. **Cognitive Science**: How does the visualization of thinking affect human understanding of AI?
+2. **Formal Methods**: Can we verify rule coherence automatically? What's the complexity?
+3. **Machine Learning**: How does learning from implicit outcomes compare to explicit rewards?
+4. **Systems**: What's the optimal architecture for persistent AI on resource-constrained devices?
+5. **HCI**: Do users trust AI more when they can see and understand its reasoning?
+6. **Energy**: Can we predict operation costs without explicit profiling?
+
+---
+
+## 🎓 Extending SA-AIHOS for Research
+
+### Adding New Perception Signals
+
+To add a new sensor/signal to the perception system:
+
+1. **Implement Sensor Interface** (Layer 4a):
+   ```kotlin
+   class MyNewSensor : SystemSignalMonitor {
+       fun getValue(): MySignalType
+       fun getConfidence(): Float
+   }
+   ```
+
+2. **Integrate with Context**:
+   - Add to DeviceContext data class
+   - Update aggregation logic
+   - Add to rule condition language
+
+3. **Documentation**:
+   - Describe measurement method
+   - Explain confidence/noise model
+   - Give example rules using signal
+
+### Modifying Learning Parameters
+
+The learning system is configurable:
+
+```kotlin
+// In EvolutionEngine.kt
+val learningParams = LearningParameters(
+    reinforcementRate = 0.10,      // α (increase on success)
+    punishmentRate = 0.05,         // β (decrease on failure)
+    successThreshold = 0.60,       // when to reinforce
+    contradictionThreshold = 0.70, // when contradictions matter
+    newRuleThreshold = 3           // pattern repetitions before new rule
+)
+```
+
+Experiment by varying these parameters and measuring learning speed/stability.
+
+### Implementing Custom Visualization
+
+Create alternative visualization mappings:
+
+```kotlin
+// In FilamentRenderer.kt
+interface CognitiveStateVisualizer {
+    fun mapToGeometry(cognitivState: CognitionState): Geometry
+    fun getQualityLevel(): VisualizationQuality
+}
+```
+
+Research questions: What mappings are most interpretable? Do different mappings aid understanding differently?
+
+### Accessing Decision Data for Research
+
+The system logs all decisions:
+
+```kotlin
+val decisionLog: Flow<DecisionRecord> = 
+    cognitionEngine.getDecisionHistory()
+        .map { record -> record.toResearchFormat() }
+
+// Each record contains:
+// - timestamp, action, context, expected_outcome
+// - activated rules and their confidences
+// - success score (when reflection occurred)
+// - learning events (rules modified)
+```
+
+Export logs for analysis: learning curves, rule evolution, energy/quality tradeoffs.
 
