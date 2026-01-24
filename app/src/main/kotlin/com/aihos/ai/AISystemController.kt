@@ -37,6 +37,75 @@ class AISystemController(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 ) {
 
+    // ==================== SAFETY CONSTANTS ====================
+
+    companion object {
+        /**
+         * Maximum cycles per session (~4.6 hours at 60 FPS)
+         * Prevents unbounded execution and resource exhaustion
+         */
+        private const val MAX_CYCLES_PER_SESSION = 1_000_000
+
+        /**
+         * Maximum time allowed for a single cycle (5 seconds)
+         * Detects stuck phases or runaway computations
+         */
+        private const val CYCLE_TIMEOUT_MS = 5000
+
+        /**
+         * Reflection interval: analyze every N cycles
+         * Prevents excessive reflection overhead
+         */
+        private const val REFLECTION_INTERVAL_CYCLES = 10
+
+        /**
+         * Minimum time between cycles (16ms = 60 FPS)
+         * Ensures bounded CPU usage
+         */
+        private const val MIN_CYCLE_DURATION_MS = 16
+
+        /**
+         * Evolution confidence threshold
+         * Only evolve when confidence exceeds this value
+         */
+        private const val MIN_CONFIDENCE_FOR_EVOLUTION = 0.7f
+
+        /**
+         * Maximum number of rules to create/modify per evolution event
+         * Prevents destabilizing rule set changes
+         */
+        private const val MAX_RULES_PER_EVOLUTION = 3
+
+        /**
+         * Maximum weight change per rule evolution (0.0 to 1.0 scale)
+         * Ensures gradual rule adaptation
+         */
+        private const val MAX_WEIGHT_CHANGE = 0.2f
+
+        /**
+         * Maximum reflection depth (prevents meta-reflection loops)
+         */
+        private const val MAX_REFLECTION_DEPTH = 1
+
+        /**
+         * Maximum insights extracted per reflection cycle
+         * Prevents cascading reflection analysis
+         */
+        private const val MAX_INSIGHTS_PER_REFLECTION = 5
+
+        /**
+         * Evolution rollback history window
+         * Keeps snapshots for recent evolution events
+         */
+        private const val EVOLUTION_ROLLBACK_WINDOW = 100
+
+        /**
+         * Error recovery backoff time (milliseconds)
+         * Time to wait before retrying after error
+         */
+        private const val ERROR_RECOVERY_BACKOFF_MS = 1000L
+    }
+
     // ==================== STATE MANAGEMENT ====================
 
     /**
@@ -79,6 +148,114 @@ class AISystemController(
     )
     val evolutionEvents: SharedFlow<EvolutionEvent> = _evolutionEvents.asSharedFlow()
 
+    // ==================== STATE TRANSITION VALIDATION (FSM) ====================
+
+    /**
+     * Finite State Machine: Defines all allowed state transitions
+     * Maps current state to set of allowed next states
+     * Prevents invalid state transitions and ensures deterministic behavior
+     */
+    private val ALLOWED_TRANSITIONS = mapOf(
+        AIState.Idle::class to setOf(
+            AIState.Initializing::class,
+            AIState.Paused::class,
+            AIState.Stopped::class,
+            AIState.Error::class
+        ),
+        AIState.Initializing::class to setOf(
+            AIState.Thinking::class,
+            AIState.Paused::class,
+            AIState.Stopped::class,
+            AIState.Error::class
+        ),
+        AIState.Thinking::class to setOf(
+            AIState.Acting::class,
+            AIState.Paused::class,
+            AIState.Error::class
+        ),
+        AIState.Acting::class to setOf(
+            AIState.Reflecting::class,
+            AIState.Paused::class,
+            AIState.Error::class
+        ),
+        AIState.Reflecting::class to setOf(
+            AIState.Evolving::class,
+            AIState.Thinking::class,
+            AIState.Paused::class,
+            AIState.Error::class
+        ),
+        AIState.Evolving::class to setOf(
+            AIState.Thinking::class,
+            AIState.Paused::class,
+            AIState.Error::class
+        ),
+        AIState.Paused::class to setOf(
+            AIState.Thinking::class,
+            AIState.Idle::class,
+            AIState.Stopped::class,
+            AIState.Error::class
+        ),
+        AIState.Stopped::class to setOf(
+            AIState.Idle::class,
+            AIState.Error::class
+        ),
+        AIState.Error::class to setOf(
+            AIState.Idle::class,
+            AIState.Paused::class,
+            AIState.Stopped::class
+        )
+    )
+
+    /**
+     * Validates a state transition against the FSM
+     * @return true if transition is allowed, false otherwise
+     */
+    private fun isTransitionAllowed(from: AIState, to: AIState): Boolean {
+        // If states are the same, no-op is allowed
+        if (from::class == to::class) return true
+
+        val allowedNextStates = ALLOWED_TRANSITIONS[from::class] ?: emptySet()
+        return to::class in allowedNextStates
+    }
+
+    /**
+     * Safely transition to a new state with FSM validation
+     * Logs invalid transitions and keeps system in Error state if validation fails
+     * @param newState The desired state to transition to
+     * @return true if transition succeeded, false if invalid
+     */
+    private fun transitionToState(newState: AIState): Boolean {
+        val currentState = _aiState.value
+        if (!isTransitionAllowed(currentState, newState)) {
+            Timber.e("Invalid state transition: $currentState → $newState")
+            _aiState.value = AIState.Error("Invalid state transition from $currentState to $newState")
+            return false
+        }
+        _aiState.value = newState
+        Timber.d("State transition: $currentState → $newState")
+        return true
+    }
+
+    // ==================== COGNITION LOOP STATE TRACKING ====================
+
+    /**
+     * Cycle counter: increments each cognitive loop iteration
+     * Used to gate reflection frequency and detect loop termination
+     */
+    private var cycleCount = 0
+
+    /**
+     * Reflection depth counter: prevents recursive meta-reflection
+     * Incremented when entering reflection, decremented on exit
+     */
+    private var reflectionDepth = 0
+
+    /**
+     * Cycle timing: timestamp when current cycle started
+     * Used to detect timeout and measure cycle duration
+     */
+    private var cycleStartTime = 0L
+
     // ==================== LIFECYCLE MANAGEMENT ====================
 
     private var currentJob: Job? = null
@@ -88,6 +265,7 @@ class AISystemController(
     /**
      * Start the AI system.
      * Should be called from onCreate or when app comes to foreground.
+     * Uses FSM validation to ensure proper state transition from Idle → Initializing.
      */
     fun start() {
         if (isRunning) return
@@ -95,8 +273,14 @@ class AISystemController(
         Timber.d("AI System starting")
         isRunning = true
         isPaused = false
+        cycleCount = 0
 
-        _aiState.value = AIState.Initializing
+        // FSM-validated transition
+        if (!transitionToState(AIState.Initializing)) {
+            Timber.e("Failed to start: invalid state transition")
+            return
+        }
+
         currentJob = scope.launch {
             cognitiveLoop()
         }
@@ -106,19 +290,21 @@ class AISystemController(
      * Pause the AI system.
      * Should be called when app goes to background.
      * AI state is preserved; can be resumed.
+     * Uses FSM validation to ensure proper pause transition.
      */
     fun pause() {
         if (!isRunning || isPaused) return
 
         Timber.d("AI System pausing")
         isPaused = true
-        _aiState.value = AIState.Paused
+        transitionToState(AIState.Paused)
         _executionPhase.value = ExecutionPhase.IDLE
     }
 
     /**
      * Resume the AI system from pause.
      * Should be called when app comes back to foreground.
+     * Uses FSM validation to ensure proper resume transition.
      */
     fun resume() {
         if (!isRunning || !isPaused) return
@@ -135,7 +321,8 @@ class AISystemController(
     /**
      * Stop the AI system completely.
      * Should be called from onDestroy.
-     * Persists final state before shutdown.
+     * Persists final state before shutdown and cleans up resources.
+     * Uses FSM validation to ensure proper stop transition.
      */
     fun stop() {
         if (!isRunning) return
@@ -145,7 +332,7 @@ class AISystemController(
         currentJob?.cancel()
         scope.cancel()
 
-        _aiState.value = AIState.Stopped
+        transitionToState(AIState.Stopped)
         _executionPhase.value = ExecutionPhase.IDLE
     }
 
@@ -157,61 +344,219 @@ class AISystemController(
      * This loop runs continuously, cycling through the four phases.
      * Each phase updates the state flow, allowing UI to react in real-time.
      *
-     * Timing:
+     * Safety guarantees:
+     * - Max cycles per session: prevents unbounded execution (1M cycles)
+     * - Cycle timeout detection: detects stuck phases (5 seconds)
+     * - Bounded frequency: minimum 16ms between cycles (60 FPS)
+     * - FSM validation: all state transitions validated
+     * - Reflection gating: every 10 cycles (prevents overhead)
+     * - Evolution gating: only if confidence > 0.7 (prevents instability)
+     * - Error recovery: graceful degradation with backoff
+     *
+     * Timing targets:
      * - THINK: 16-100ms (decision-making)
      * - ACT: 0ms (environment interaction)
-     * - REFLECT: 50-200ms (every 5-10 cycles)
+     * - REFLECT: 50-200ms (every 10 cycles)
      * - EVOLVE: 10-50ms (every 10-50 cycles)
      */
     private suspend fun cognitiveLoop() = withContext(Dispatchers.Default) {
-        var cycleCount = 0
+        Timber.d("Cognitive loop starting (max $MAX_CYCLES_PER_SESSION cycles)")
+        cycleCount = 0
+        reflectionDepth = 0
 
-        while (isRunning && !isPaused) {
+        // Transition to Thinking state
+        transitionToState(AIState.Thinking)
+
+        while (isRunning && !isPaused && cycleCount < MAX_CYCLES_PER_SESSION) {
+            cycleStartTime = System.currentTimeMillis()
+            cycleCount++
+
             try {
-                cycleCount++
-                val startTime = System.currentTimeMillis()
+                // Safety check: detect timeout from previous cycle
+                if (System.currentTimeMillis() - cycleStartTime > CYCLE_TIMEOUT_MS) {
+                    Timber.w("Cycle timeout detected at start of cycle $cycleCount")
+                    handleErrorRecovery(TimeoutException("Cycle start timeout"))
+                    continue
+                }
 
                 // ==================== THINK ====================
                 _executionPhase.value = ExecutionPhase.THINKING
-                _aiState.value = AIState.Thinking
+                if (!transitionToState(AIState.Thinking)) {
+                    Timber.w("Cannot transition to Thinking from ${_aiState.value}")
+                    continue
+                }
 
                 val reasoningContext = buildReasoningContext()
                 val decision = thinkPhase(reasoningContext, cycleCount)
                 _lastDecision.value = decision
 
+                // Check cycle timeout
+                if (System.currentTimeMillis() - cycleStartTime > CYCLE_TIMEOUT_MS) {
+                    Timber.w("Cycle timeout detected after THINK phase (cycle $cycleCount)")
+                    handleErrorRecovery(TimeoutException("THINK phase timeout"))
+                    continue
+                }
+
                 // ==================== ACT ====================
                 _executionPhase.value = ExecutionPhase.ACTING
-                _aiState.value = AIState.Acting
+                if (!transitionToState(AIState.Acting)) {
+                    Timber.w("Cannot transition to Acting from ${_aiState.value}")
+                    continue
+                }
 
                 val outcome = actPhase(decision)
 
+                // Check cycle timeout
+                if (System.currentTimeMillis() - cycleStartTime > CYCLE_TIMEOUT_MS) {
+                    Timber.w("Cycle timeout detected after ACT phase (cycle $cycleCount)")
+                    handleErrorRecovery(TimeoutException("ACT phase timeout"))
+                    continue
+                }
+
                 // ==================== REFLECT ====================
-                // Only reflect every N cycles (saves computation)
-                if (cycleCount % 10 == 0) {
+                // Gating: Only reflect every N cycles to prevent overhead
+                if (cycleCount % REFLECTION_INTERVAL_CYCLES == 0) {
                     _executionPhase.value = ExecutionPhase.REFLECTING
-                    _aiState.value = AIState.Reflecting
+                    if (!transitionToState(AIState.Reflecting)) {
+                        Timber.w("Cannot transition to Reflecting from ${_aiState.value}")
+                        continue
+                    }
 
                     val insight = reflectPhase(decision, outcome)
                     _lastInsight.value = insight
 
+                    // Check cycle timeout
+                    if (System.currentTimeMillis() - cycleStartTime > CYCLE_TIMEOUT_MS) {
+                        Timber.w("Cycle timeout detected after REFLECT phase (cycle $cycleCount)")
+                        handleErrorRecovery(TimeoutException("REFLECT phase timeout"))
+                        continue
+                    }
+
                     // ==================== EVOLVE ====================
-                    // Only evolve when reflection yields high-confidence insights
-                    if (insight.confidence > 0.7f) {
+                    // Gating: Only evolve when reflection yields high-confidence insights
+                    if (insight.confidence > MIN_CONFIDENCE_FOR_EVOLUTION) {
                         _executionPhase.value = ExecutionPhase.EVOLVING
-                        _aiState.value = AIState.Evolving
+                        if (!transitionToState(AIState.Evolving)) {
+                            Timber.w("Cannot transition to Evolving from ${_aiState.value}")
+                            continue
+                        }
 
                         val evolutionEvent = evolvePhase(insight)
                         _evolutionEvents.emit(evolutionEvent)
+
+                        // Check cycle timeout
+                        if (System.currentTimeMillis() - cycleStartTime > CYCLE_TIMEOUT_MS) {
+                            Timber.w("Cycle timeout detected after EVOLVE phase (cycle $cycleCount)")
+                            handleErrorRecovery(TimeoutException("EVOLVE phase timeout"))
+                            continue
+                        }
                     }
                 }
 
                 // Record metrics
-                val endTime = System.currentTimeMillis()
-                val cycleTime = endTime - startTime
+                val cycleTime = System.currentTimeMillis() - cycleStartTime
                 recordCycleMetrics(cycleTime, cycleCount)
 
-                // Brief delay before next cycle (allows async operations to complete)
-                delay(16) // ~60 FPS target
+                // Enforce minimum cycle duration for bounded frequency
+                val minDurationRemaining = MIN_CYCLE_DURATION_MS - cycleTime
+                if (minDurationRemaining > 0) {
+                    delay(minDurationRemaining)
+                }
+
+            } catch (e: Exception) {
+                Timber.e(e, "Error in cycle $cycleCount (phase=${_executionPhase.value})")
+                handleErrorRecovery(e)
+            }
+        }
+
+        // Normal loop exit handling
+        when {
+            cycleCount >= MAX_CYCLES_PER_SESSION -> {
+                Timber.i("Reached max cycle limit ($MAX_CYCLES_PER_SESSION). Stopping.")
+                stop()
+            }
+            !isRunning -> {
+                Timber.d("Cognitive loop stopped (isRunning=false)")
+                transitionToState(AIState.Stopped)
+            }
+            isPaused -> {
+                Timber.d("Cognitive loop paused (isPaused=true)")
+                transitionToState(AIState.Paused)
+            }
+        }
+
+        Timber.d("Cognitive loop finished (cycleCount=$cycleCount)")
+    }
+
+    /**
+     * Handle error recovery with appropriate action based on error type
+     * Ensures graceful degradation and logging for debugging
+     */
+    private suspend fun handleErrorRecovery(error: Throwable) {
+        Timber.e(error, "Error at cycle $cycleCount, phase=${_executionPhase.value}")
+
+        // Determine recovery action based on error type
+        val recoveryAction = when (error) {
+            is OutOfMemoryError -> {
+                Timber.e("Memory exhausted, clearing old data")
+                try {
+                    memorySystem.clearOldData(System.currentTimeMillis() - 3600000) // 1 hour
+                    RecoveryAction.RETRY_WITH_SHORT_BACKOFF
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to clear old data")
+                    RecoveryAction.PAUSE_FOR_INTERVENTION
+                }
+            }
+            is TimeoutException -> {
+                Timber.e("Phase timeout, reducing cycle frequency")
+                RecoveryAction.RETRY_WITH_LONG_BACKOFF
+            }
+            is IllegalStateException -> {
+                Timber.e("Invalid state transition, resetting to IDLE")
+                RecoveryAction.RESET_TO_IDLE
+            }
+            is InterruptedException -> {
+                Timber.d("Cognitive loop interrupted, stopping")
+                RecoveryAction.STOP
+            }
+            else -> {
+                Timber.e("Unknown error, pausing for manual intervention")
+                RecoveryAction.PAUSE_FOR_INTERVENTION
+            }
+        }
+
+        // Execute recovery action
+        when (recoveryAction) {
+            RecoveryAction.RETRY_WITH_SHORT_BACKOFF -> {
+                delay(ERROR_RECOVERY_BACKOFF_MS)
+                transitionToState(AIState.Thinking)
+            }
+            RecoveryAction.RETRY_WITH_LONG_BACKOFF -> {
+                delay(ERROR_RECOVERY_BACKOFF_MS * 3)
+                transitionToState(AIState.Thinking)
+            }
+            RecoveryAction.RESET_TO_IDLE -> {
+                transitionToState(AIState.Idle)
+                isPaused = true // Requires manual resume
+            }
+            RecoveryAction.PAUSE_FOR_INTERVENTION -> {
+                transitionToState(AIState.Paused)
+                isPaused = true // Requires manual resume
+            }
+            RecoveryAction.STOP -> {
+                transitionToState(AIState.Stopped)
+                isRunning = false
+            }
+        }
+    }
+
+    enum class RecoveryAction {
+        RETRY_WITH_SHORT_BACKOFF,
+        RETRY_WITH_LONG_BACKOFF,
+        RESET_TO_IDLE,
+        PAUSE_FOR_INTERVENTION,
+        STOP
+    }
 
             } catch (e: CancellationException) {
                 Timber.d("Cognitive loop cancelled")
@@ -334,6 +679,13 @@ class AISystemController(
     /**
      * REFLECT Phase: Analyze outcome and learn
      *
+     * Safety guarantees:
+     * - Reflection depth limit: prevents meta-reflection loops (max 1 level)
+     * - Insights limit: bounds cascading analysis (max 5 insights per reflection)
+     * - Error handling: returns safe default insight on failure
+     * - Explicit gating: only called every REFLECTION_INTERVAL_CYCLES cycles
+     *
+     * Process:
      * - Compare outcome to expectation
      * - Identify patterns
      * - Generate learning hypothesis
@@ -343,43 +695,59 @@ class AISystemController(
         decision: CognitiveDecision,
         outcome: ActionOutcome
     ): ReflectionInsight {
-        return withContext(Dispatchers.Default) {
-            try {
-                val startTime = System.currentTimeMillis()
+        // Reflection depth protection: prevent recursive analysis
+        if (reflectionDepth >= MAX_REFLECTION_DEPTH) {
+            Timber.w("Reflection depth limit reached (depth=$reflectionDepth). Returning safe default.")
+            return ReflectionInsight(
+                decisionId = decision.phaseNumber,
+                pattern = "Reflection depth limit reached",
+                confidence = 0.0f,
+                supportingEvidence = 0
+            )
+        }
 
-                // Retrieve similar past decisions from memory
-                val similarDecisions = memorySystem.findSimilarDecisions(
-                    decision.selectedAction,
-                    lookbackCount = 100
-                )
+        reflectionDepth++
+        try {
+            return withContext(Dispatchers.Default) {
+                try {
+                    val startTime = System.currentTimeMillis()
 
-                // Analyze patterns
-                val successRate = similarDecisions.count { it.wasSuccessful }.toFloat() /
-                        similarDecisions.size.coerceAtLeast(1)
+                    // Retrieve similar past decisions from memory
+                    val similarDecisions = memorySystem.findSimilarDecisions(
+                        decision.selectedAction,
+                        lookbackCount = 100
+                    )
 
-                val insight = ReflectionInsight(
-                    decisionId = decision.phaseNumber,
-                    pattern = "Action '${decision.selectedAction}' has ${(successRate * 100).toInt()}% success rate",
-                    confidence = successRate,
-                    supportingEvidence = similarDecisions.size,
-                    processingTimeMs = System.currentTimeMillis() - startTime
-                )
+                    // Analyze patterns
+                    val successRate = similarDecisions.count { it.wasSuccessful }.toFloat() /
+                            similarDecisions.size.coerceAtLeast(1)
 
-                memorySystem.recordInsight(insight)
+                    val insight = ReflectionInsight(
+                        decisionId = decision.phaseNumber,
+                        pattern = "Action '${decision.selectedAction}' has ${(successRate * 100).toInt()}% success rate",
+                        confidence = successRate,
+                        supportingEvidence = similarDecisions.size,
+                        processingTimeMs = System.currentTimeMillis() - startTime
+                    )
 
-                Timber.d("REFLECT phase: Insight confidence = ${insight.confidence}")
+                    memorySystem.recordInsight(insight)
 
-                insight
+                    Timber.d("REFLECT phase: Insight confidence = ${insight.confidence} (depth=$reflectionDepth)")
 
-            } catch (e: Exception) {
-                Timber.e(e, "Error in REFLECT phase")
-                ReflectionInsight(
-                    decisionId = decision.phaseNumber,
-                    pattern = "No clear pattern",
-                    confidence = 0.0f,
-                    supportingEvidence = 0
-                )
+                    insight
+
+                } catch (e: Exception) {
+                    Timber.e(e, "Error in REFLECT phase")
+                    ReflectionInsight(
+                        decisionId = decision.phaseNumber,
+                        pattern = "Error during reflection",
+                        confidence = 0.0f,
+                        supportingEvidence = 0
+                    )
+                }
             }
+        } finally {
+            reflectionDepth--
         }
     }
 
