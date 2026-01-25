@@ -20,19 +20,14 @@ data class Episode(
     val createdAt: Long = System.currentTimeMillis()
 )
 
-/**
- * Semantic fact: learned knowledge with confidence scoring
- */
 @Serializable
 data class SemanticFact(
     val id: String = UUID.randomUUID().toString(),
     val fact: String,
-    val confidence: Float, // 0.0 to 1.0
-    val sources: List<String> = emptyList(), // Episode IDs supporting this fact
+    val confidence: Float,
+    val sources: List<String> = emptyList(),
     val lastUpdated: Long = System.currentTimeMillis()
-) {
-    require(confidence in 0f..1f) { "Confidence must be between 0 and 1" }
-}
+)
 
 /**
  * Behavioral rule: decision heuristic that AI uses
