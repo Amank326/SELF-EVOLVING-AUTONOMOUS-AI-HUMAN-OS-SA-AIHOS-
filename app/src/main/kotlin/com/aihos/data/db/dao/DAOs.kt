@@ -180,10 +180,16 @@ interface AutonomousDecisionDao {
 interface PerformanceMetricDao {
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMetric(metric: PerformanceMetricEntity)
+    suspend fun insertMetric(metric: PerformanceMetricEntity): Long
     
     @Query("SELECT * FROM performance_metrics WHERE timestamp BETWEEN :startTime AND :endTime ORDER BY timestamp DESC")
     suspend fun getMetricsInRange(startTime: Long, endTime: Long): List<PerformanceMetricEntity>
+    
+    @Update
+    suspend fun updateMetric(metric: PerformanceMetricEntity)
+    
+    @Delete
+    suspend fun deleteMetric(metric: PerformanceMetricEntity)
     
     @Query("DELETE FROM performance_metrics WHERE timestamp < :olderThan")
     suspend fun deleteOldMetrics(olderThan: Long)
@@ -209,7 +215,13 @@ interface FeedbackDao {
     suspend fun getRatedFeedback(limit: Int): List<FeedbackEntity>
     
     @Query("SELECT AVG(rating) FROM feedback WHERE rating IS NOT NULL")
-    suspend fun getAverageRating(): Float
+    suspend fun getAverageRating(): Float?
+    
+    @Update
+    suspend fun updateFeedback(feedback: FeedbackEntity)
+    
+    @Delete
+    suspend fun deleteFeedback(feedback: FeedbackEntity)
 }
 
 /**
@@ -220,7 +232,7 @@ interface FeedbackDao {
 interface SystemConfigDao {
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun setConfig(config: SystemConfigEntity)
+    suspend fun setConfig(config: SystemConfigEntity): Long
     
     @Query("SELECT * FROM system_config WHERE key = :key")
     suspend fun getConfig(key: String): SystemConfigEntity?
@@ -230,6 +242,9 @@ interface SystemConfigDao {
     
     @Query("SELECT * FROM system_config")
     suspend fun getAllConfigs(): List<SystemConfigEntity>
+    
+    @Update
+    suspend fun updateConfig(config: SystemConfigEntity)
     
     @Delete
     suspend fun deleteConfig(config: SystemConfigEntity)

@@ -15,9 +15,7 @@ class SAIHOSApplication : Application() {
         super.onCreate()
         
         // Initialize logging
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        }
+        Timber.plant(Timber.DebugTree())
         
         Timber.i("SA-AIHOS Application initialized")
     }
