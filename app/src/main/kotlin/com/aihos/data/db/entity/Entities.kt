@@ -41,7 +41,6 @@ data class MemoryEntity(
     tableName = "reasoning_rules",
     indices = [
         Index("isActive"),
-        Index("successRate"),
         Index("weight")
     ]
 )

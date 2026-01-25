@@ -37,11 +37,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Background service for autonomous decision loop -->
-        <service
-            android:name="com.aihos.ai.AutonomousDecisionService"
-            android:enabled="true"
-            android:exported="false" />
+
 
     </application>
 

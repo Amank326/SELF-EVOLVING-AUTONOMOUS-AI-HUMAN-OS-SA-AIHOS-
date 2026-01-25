@@ -24,7 +24,8 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 color = Color(0xFF1F1F1F)
             ) {
-                SAIHOSApp()
+                // Minimal UI - Phase 3 screens removed due to broken AI implementations
+                Timber.d("Main Activity UI loaded")
             }
         }
     }

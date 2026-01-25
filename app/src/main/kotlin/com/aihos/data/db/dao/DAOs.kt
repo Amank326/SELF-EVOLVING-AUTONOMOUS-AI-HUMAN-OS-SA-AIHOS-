@@ -72,7 +72,7 @@ interface ReasoningRuleDao {
     @Query("SELECT * FROM reasoning_rules ORDER BY weight DESC LIMIT :limit")
     suspend fun getTopRulesByWeight(limit: Int): List<ReasoningRuleEntity>
     
-    @Query("SELECT * FROM reasoning_rules ORDER BY successRate DESC LIMIT :limit")
+    @Query("SELECT * FROM reasoning_rules ORDER BY (CAST(successCount AS REAL) / (successCount + failureCount + 1)) DESC LIMIT :limit")
     suspend fun getTopRulesBySuccessRate(limit: Int): List<ReasoningRuleEntity>
     
     @Update
