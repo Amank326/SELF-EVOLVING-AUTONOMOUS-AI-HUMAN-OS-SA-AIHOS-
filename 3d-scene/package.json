@@ -24,7 +24,7 @@
     "interactive"
   ],
   "dependencies": {
-    "three": "^r128"
+    "three": "^0.128.0"
   },
   "devDependencies": {
     "eslint": "^8.0.0",
