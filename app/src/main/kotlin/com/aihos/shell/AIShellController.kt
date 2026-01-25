@@ -261,7 +261,7 @@ data class AIShellMetrics(
     val totalIntentHandled: Int = 0,
     val averageResponseTimeMs: Long = 0L,
     val totalSystemEventsProcessed: Int = 0,
-    val uptime Minutes: Long = 0L,
+    val uptimeMinutes: Long = 0L,
     val overlayInteractions: Int = 0,
     val notificationInteractions: Int = 0,
     val intentInteractions: Int = 0,
@@ -524,7 +524,7 @@ class DefaultAIShellController(
             totalIntentHandled = intentHandledCount,
             averageResponseTimeMs = if (intentHandledCount > 0) totalResponseTimeMs / intentHandledCount else 0L,
             totalSystemEventsProcessed = totalSystemEvents,
-            uptime Minutes = uptime,
+            uptimeMinutes = uptime,
             averageAIWisdomScore = avgWisdom
         )
     }

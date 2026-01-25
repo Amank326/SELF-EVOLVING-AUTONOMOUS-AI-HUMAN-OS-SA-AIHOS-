@@ -5,12 +5,22 @@ import com.aihos.ai.autonomy.AutonomyController
 import com.aihos.ai.autonomy.impl.DefaultAutonomyController
 import com.aihos.ai.evolution.EvolutionEngine
 import com.aihos.ai.evolution.impl.DefaultEvolutionEngine
+import com.aihos.ai.evolution.AdvancedEvolutionEngine
+import com.aihos.ai.evolution.impl.DefaultAdvancedEvolutionEngine
 import com.aihos.ai.memory.MemoryLayer
 import com.aihos.ai.memory.impl.DefaultMemoryLayer
+import com.aihos.ai.memory.AdvancedMemoryLayer
+import com.aihos.ai.memory.impl.DefaultAdvancedMemoryLayer
 import com.aihos.ai.reasoning.ReasoningLayer
 import com.aihos.ai.reasoning.impl.DefaultReasoningLayer
+import com.aihos.ai.reasoning.AdvancedReasoningLayer
+import com.aihos.ai.reasoning.impl.DefaultAdvancedReasoningLayer
 import com.aihos.ai.reflection.ReflectionLayer
 import com.aihos.ai.reflection.impl.DefaultReflectionLayer
+import com.aihos.ai.reflection.AdvancedReflectionLayer
+import com.aihos.ai.reflection.impl.DefaultAdvancedReflectionLayer
+import com.aihos.ai.orchestration.AdvancedAutonomyController
+import com.aihos.ai.orchestration.impl.DefaultAdvancedAutonomyController
 import com.aihos.data.db.SAIHOSDatabase
 import com.aihos.data.repository.MemoryRepository
 import com.aihos.domain.use_case.AIBrainUseCase
@@ -88,6 +98,42 @@ object Module {
     @Singleton
     @Provides
     fun provideAutonomyController(): AutonomyController = DefaultAutonomyController()
+
+    // ===== Advanced AI Core Layer Providers =====
+    
+    @Singleton
+    @Provides
+    fun provideAdvancedMemoryLayer(baseMemory: MemoryLayer): AdvancedMemoryLayer = 
+        DefaultAdvancedMemoryLayer(baseMemory)
+    
+    @Singleton
+    @Provides
+    fun provideAdvancedReasoningLayer(baseReasoning: ReasoningLayer): AdvancedReasoningLayer = 
+        DefaultAdvancedReasoningLayer(baseReasoning)
+    
+    @Singleton
+    @Provides
+    fun provideAdvancedReflectionLayer(baseReflection: ReflectionLayer): AdvancedReflectionLayer = 
+        DefaultAdvancedReflectionLayer(baseReflection)
+    
+    @Singleton
+    @Provides
+    fun provideAdvancedEvolutionEngine(baseEvolution: EvolutionEngine): AdvancedEvolutionEngine = 
+        DefaultAdvancedEvolutionEngine(baseEvolution)
+    
+    @Singleton
+    @Provides
+    fun provideAdvancedAutonomyController(
+        advancedMemory: AdvancedMemoryLayer,
+        advancedReasoning: AdvancedReasoningLayer,
+        advancedReflection: AdvancedReflectionLayer,
+        advancedEvolution: AdvancedEvolutionEngine
+    ): AdvancedAutonomyController = DefaultAdvancedAutonomyController(
+        advancedMemory = advancedMemory,
+        advancedReasoning = advancedReasoning,
+        advancedReflection = advancedReflection,
+        advancedEvolution = advancedEvolution
+    )
     
     // ===== Domain Layer Use Cases =====
     

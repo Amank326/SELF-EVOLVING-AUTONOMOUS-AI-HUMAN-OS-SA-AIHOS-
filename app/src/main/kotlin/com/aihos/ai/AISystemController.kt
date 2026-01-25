@@ -565,20 +565,6 @@ class AISystemController(
         STOP
     }
 
-            } catch (e: CancellationException) {
-                Timber.d("Cognitive loop cancelled")
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "Error in cognitive loop")
-                _aiState.value = AIState.Error(e.message ?: "Unknown error")
-                // Don't crash; continue loop
-                delay(1000)
-            }
-        }
-
-        Timber.d("Cognitive loop ended after $cycleCount cycles")
-    }
-
     // ==================== PHASE IMPLEMENTATIONS ====================
 
     /**

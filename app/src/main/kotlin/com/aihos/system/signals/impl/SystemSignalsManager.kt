@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class SystemSignalsManager(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + Supervisor Job())
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 ) : SignalCollector {
 
     // ==================== STATE ====================

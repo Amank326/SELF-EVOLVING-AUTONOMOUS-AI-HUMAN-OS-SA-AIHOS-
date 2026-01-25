@@ -154,7 +154,7 @@ fun getReasoningLatencyBudgetMs(context: EnvironmentAwareReasoningContext): Long
 /**
  * Determine reasoning conservativeness vs. exploration
  */
-fun getReasoning ExplorativenessBalance(context: EnvironmentAwareReasoningContext): Pair<Float, Float> {
+fun getReasoningExplorativenessBalance(context: EnvironmentAwareReasoningContext): Pair<Float, Float> {
     // (conservativeness, explorativeness)
     
     // Default: balanced
