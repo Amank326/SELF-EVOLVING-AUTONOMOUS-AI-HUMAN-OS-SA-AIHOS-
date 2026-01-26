@@ -5,6 +5,9 @@ import com.aihos.ai.evolution.EvolutionEngine
 import com.aihos.ai.memory.MemoryManager
 import com.aihos.ai.reasoning.ReasoningEngine
 import com.aihos.ai.reflection.ReflectionEngine
+import com.aihos.ai.neural.NeuralNetwork
+import com.aihos.ai.neural.NeuralNetworkEnsemble
+import com.aihos.ai.prediction.PredictiveEngine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -80,6 +83,14 @@ class AICoordinator(private val coroutineScope: CoroutineScope = CoroutineScope(
     private val evolutionEngine = EvolutionEngine()
     private val reflectionEngine = ReflectionEngine()
     
+    // Advanced systems
+    private val neuralNetwork = NeuralNetwork(listOf(15, 48, 32, 10))
+    private val neuralEnsemble = NeuralNetworkEnsemble(3).apply {
+        repeat(3) { addNetwork(NeuralNetwork(listOf(15, 48, 32, 10))) }
+    }
+    private val predictiveEngine = PredictiveEngine()
+    private val stateObserver = AIStateObserver()
+    
     // State management
     private val _systemState = MutableStateFlow<AISystemState?>(null)
     val systemState: StateFlow<AISystemState?> = _systemState
@@ -144,7 +155,6 @@ class AICoordinator(private val coroutineScope: CoroutineScope = CoroutineScope(
         // 3. Autonomy cycle
         val currentGoals = autonomyController.getActivePrioritizedGoals()
         if (currentGoals.isEmpty()) {
-            // Generate default goal
             autonomyController.setGoal("Improve system performance", 0.7f)
         }
         
@@ -164,19 +174,46 @@ class AICoordinator(private val coroutineScope: CoroutineScope = CoroutineScope(
             evolutionEngine.evolutionMetrics.value.evolutionRate
         )
         
-        // Update overall state
+        // 6. Neural network prediction cycle
+        val predictions = mutableMapOf<String, Float>()
+        
+        val behaviorPrediction = predictiveEngine.predictBehavior(
+            autonomyController.autonomyLevel.value,
+            memoryManager.memoryLoad.value,
+            reasoningEngine.confidence.value,
+            reasoningEngine.confidence.value,
+            reasoningEngine.complexity.value
+        )
+        predictions["behavior"] = behaviorPrediction.prediction
+        
+        val performancePrediction = predictiveEngine.predictPerformance(
+            _systemHealth.value,
+            autonomyController.autonomyLevel.value,
+            1f - memoryManager.memoryLoad.value,
+            reasoningEngine.confidence.value,
+            evolutionEngine.evolutionMetrics.value.evolutionRate,
+            reflectionEngine.selfAwareness.value,
+            evolutionEngine.getLearnedSkills().size.toFloat() / 10f,
+            0.7f
+        )
+        predictions["performance"] = performancePrediction.prediction
+        
+        // Update state observer
         updateSystemState()
+        stateObserver.updateFromAIState(_systemState.value, _broadcast.value, predictions)
         
         // Calculate cycle time
         val cycleTime = System.currentTimeMillis() - cycleStartTime
         
         // Log cycle completion
         memoryManager.recordExperience(
-            "AI cycle $cycleCount completed",
+            "AI cycle $cycleCount completed with neural predictions",
             mapOf(
                 "duration" to cycleTime,
                 "memoryLoad" to memoryManager.memoryLoad.value,
-                "confidence" to reasoningEngine.confidence.value
+                "confidence" to reasoningEngine.confidence.value,
+                "behaviorPrediction" to (predictions["behavior"] ?: 0.5f),
+                "performancePrediction" to (predictions["performance"] ?: 0.5f)
             ),
             0.5f
         )
@@ -345,6 +382,21 @@ class AICoordinator(private val coroutineScope: CoroutineScope = CoroutineScope(
             "reflection" to reflectionEngine.getOverallAssessment()
         )
     }
+
+    /**
+     * Get state observer for UI binding
+     */
+    fun getStateObserver(): AIStateObserver = stateObserver
+
+    /**
+     * Get neural network ensemble for predictions
+     */
+    fun getNeuralEnsemble(): NeuralNetworkEnsemble = neuralEnsemble
+
+    /**
+     * Get predictive engine
+     */
+    fun getPredictiveEngine(): PredictiveEngine = predictiveEngine
 
     /**
      * Get brief status for UI display
