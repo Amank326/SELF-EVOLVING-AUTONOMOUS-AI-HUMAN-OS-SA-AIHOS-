@@ -10,9 +10,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import com.aihos.bridge.AndroidJSInterface
+import com.aihos.ui.nav.SAIHOSNavGraph
 import com.google.gson.JsonObject
 
 @AndroidEntryPoint
@@ -30,6 +32,9 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 color = Color(0xFF1F1F1F)
             ) {
+                val navController = rememberNavController()
+                
+                // Initialize WebView in a separate AndroidView
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { context ->
@@ -46,6 +51,9 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 )
+
+                // UI Navigation
+                SAIHOSNavGraph(navController = navController)
             }
         }
     }
