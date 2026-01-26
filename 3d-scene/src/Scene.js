@@ -21,6 +21,7 @@ import { GestureAnimationEngine } from './animations/GestureAnimationEngine.js';
 import { LightingSystem } from './lighting/LightingSystem.js';
 import { EffectsManager } from './effects/EffectsManager.js';
 import { AndroidBridge } from './bridge/AndroidBridge.js';
+import { AIStateManager } from './state/AIStateManager.js';
 import { QualityManager } from './performance/QualityManager.js';
 import { LifecycleManager } from './performance/LifecycleManager.js';
 import { PerformanceMonitor } from './performance/PerformanceMonitor.js';
@@ -51,6 +52,9 @@ export class SAIHOSScene {
     this.qualityManager = null;
     this.lifecycleManager = null;
     this.performanceMonitor = null;
+
+    // Advanced state management (NEW)
+    this.stateManager = new AIStateManager(this);
 
     // State
     this.isAnimating = true;
@@ -85,8 +89,8 @@ export class SAIHOSScene {
     this.render = this.render.bind(this);
     this.onWindowResize = this.onWindowResize.bind(this);
 
-    // Android Bridge
-    this.bridge = new AndroidBridge(this);
+    // Android Bridge with state manager integration (ADVANCED)
+    this.bridge = new AndroidBridge(this, this.stateManager);
   }
 
   /**

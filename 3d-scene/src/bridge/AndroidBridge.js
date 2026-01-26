@@ -5,8 +5,9 @@
  */
 
 export class AndroidBridge {
-  constructor(scene) {
+  constructor(scene, stateManager = null) {
     this.scene = scene;
+    this.stateManager = stateManager;
     this.isAndroidAvailable = typeof window.SAIHOSBridge !== 'undefined';
 
     // Event callbacks
@@ -19,6 +20,13 @@ export class AndroidBridge {
       '[AndroidBridge] ' +
       (this.isAndroidAvailable ? 'Android bridge available' : 'Running in web mode')
     );
+
+    // Setup message receiver from Android
+    if (this.isAndroidAvailable && window.SAIHOSBridge) {
+      window.androidInterface = {
+        onAndroidMessage: (messageStr) => this.handleAndroidMessage(messageStr),
+      };
+    }
   }
 
   /**
@@ -47,6 +55,7 @@ export class AndroidBridge {
 
   /**
    * Handle message from Android
+   * Advanced routing with state management
    */
   handleAndroidMessage(messageStr) {
     try {
@@ -62,12 +71,20 @@ export class AndroidBridge {
         this.scene.setAnimationIntensity(data.intensity);
       } else if (method === 'setAIMotionState') {
         // AI-DRIVEN ANIMATION: Receive AI state and drive procedural animations
-        this.scene.setAIMotionState(data);
+        // NEW: Use AIStateManager for advanced state synchronization
+        if (this.stateManager) {
+          this.stateManager.updateAIState(data);
+        } else {
+          this.scene.setAIMotionState(data);
+        }
       } else if (method === 'setInteractionState') {
         // INTERACTION-DRIVEN: Receive user touch/gesture state and apply animations
         this.scene.setInteractionState(data);
       } else if (method === 'gesture') {
-        // Specific gesture event
+        // Specific gesture event - forward to state manager
+        if (this.stateManager) {
+          this.stateManager.processGesture(data.type, data.intensity || 0);
+        }
         this.scene.onGesture(data.type, data.intensity);
       } else if (method === 'getMetrics') {
         const metrics = this.scene.getMetrics();

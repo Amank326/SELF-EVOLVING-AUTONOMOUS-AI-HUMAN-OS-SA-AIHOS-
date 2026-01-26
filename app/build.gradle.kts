@@ -102,6 +102,7 @@ dependencies {
 
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // Coroutines
     val coroutinesVersion = "1.7.3"
