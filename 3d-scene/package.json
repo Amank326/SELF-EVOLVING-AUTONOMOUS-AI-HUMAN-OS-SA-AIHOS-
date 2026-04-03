@@ -24,6 +24,7 @@
     "interactive"
   ],
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "three": "^0.128.0"
   },
   "devDependencies": {

@@ -1,192 +1,228 @@
 package com.aihos.data.db.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.ForeignKey
-import androidx.room.Index
-import kotlinx.serialization.Serializable
+import java.util.UUID
 
 /**
- * Entity for storing memory items in local Room database
- * Supports semantic search through dedicated indexing
+ * Memory Entity
+ * Stores AI system memories with importance and access tracking
  */
-@Entity(
-    tableName = "memories",
-    indices = [
-        Index("type"),
-        Index("importance"),
-        Index("createdAt"),
-        Index("accessCount")
-    ]
-)
-@Serializable
+@Entity(tableName = "memories")
 data class MemoryEntity(
     @PrimaryKey
-    val id: String,
-    val type: String,  // EPISODIC, SEMANTIC, PROCEDURAL, EMOTIONAL, CONTEXTUAL
+    val id: String = UUID.randomUUID().toString(),
+
+    @ColumnInfo(name = "content")
     val content: String,
-    val semanticVector: String = "",  // JSON encoded float array
-    val metadata: String = "{}",  // JSON encoded map
-    val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "type")
+    val type: String,  // "semantic", "episodic", "procedural"
+
+    @ColumnInfo(name = "importance")
     val importance: Float = 0.5f,
-    val accessCount: Int = 0
+
+    @ColumnInfo(name = "accessCount")
+    val accessCount: Int = 0,
+
+    @ColumnInfo(name = "createdAt")
+    val createdAt: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "lastAccessedAt")
+    val lastAccessedAt: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "metadata")
+    val metadata: String? = null
 )
 
 /**
- * Entity for storing reasoning rules that the AI has learned
- * These rules drive decision-making behavior
+ * Reasoning Rule Entity
+ * Stores learned reasoning rules with success/failure tracking
  */
-@Entity(
-    tableName = "reasoning_rules",
-    indices = [
-        Index("isActive"),
-        Index("weight")
-    ]
-)
-@Serializable
+@Entity(tableName = "reasoning_rules")
 data class ReasoningRuleEntity(
     @PrimaryKey
-    val id: String,
-    val condition: String,  // The condition under which this rule applies
-    val action: String,     // The action to take if condition is met
-    val weight: Float = 0.5f,  // Confidence/importance weight
+    val id: String = UUID.randomUUID().toString(),
+
+    @ColumnInfo(name = "condition")
+    val condition: String,
+
+    @ColumnInfo(name = "action")
+    val action: String,
+
+    @ColumnInfo(name = "weight")
+    val weight: Float = 1.0f,
+
+    @ColumnInfo(name = "successCount")
     val successCount: Int = 0,
+
+    @ColumnInfo(name = "failureCount")
     val failureCount: Int = 0,
+
+    @ColumnInfo(name = "isActive")
     val isActive: Boolean = true,
+
+    @ColumnInfo(name = "createdAt")
     val createdAt: Long = System.currentTimeMillis(),
-    val evolvedAt: Long = System.currentTimeMillis()
-) {
-    val successRate: Float
-        get() = if (successCount + failureCount == 0) 0f 
-                else successCount.toFloat() / (successCount + failureCount)
-}
+
+    @ColumnInfo(name = "lastUsedAt")
+    val lastUsedAt: Long? = null
+)
 
 /**
- * Entity for storing insights discovered through reflection
+ * Insight Entity
+ * Stores discovered insights from AI analysis
  */
-@Entity(
-    tableName = "insights",
-    indices = [
-        Index("type"),
-        Index("discoveredAt")
-    ]
-)
-@Serializable
+@Entity(tableName = "insights")
 data class InsightEntity(
     @PrimaryKey
-    val id: String,
-    val type: String,  // Type of insight (TIMING_ISSUE, ACTION_REFINEMENT, etc)
-    val description: String,
-    val relatedMemoryIds: String = "[]",  // JSON array of related memory IDs
-    val confidence: Float = 0.5f,
-    val actionTaken: String = "",
+    val id: String = UUID.randomUUID().toString(),
+
+    @ColumnInfo(name = "type")
+    val type: String,
+
+    @ColumnInfo(name = "content")
+    val content: String,
+
+    @ColumnInfo(name = "confidence")
+    val confidence: Float,
+
+    @ColumnInfo(name = "discoveredAt")
     val discoveredAt: Long = System.currentTimeMillis(),
-    val implementedAt: Long? = null
+
+    @ColumnInfo(name = "implementedAt")
+    val implementedAt: Long? = null,
+
+    @ColumnInfo(name = "sourceData")
+    val sourceData: String? = null
 )
 
 /**
- * Entity for tracking the evolution of the AI system
+ * Evolution Log Entity
+ * Tracks system evolution changes over time
  */
-@Entity(
-    tableName = "evolution_log",
-    indices = [
-        Index("changeType"),
-        Index("timestamp")
-    ]
-)
-@Serializable
+@Entity(tableName = "evolution_log")
 data class EvolutionLogEntity(
-    @PrimaryKey
-    val id: String,
-    val timestamp: Long = System.currentTimeMillis(),
-    val entityId: String,  // ID of the entity being evolved (rule, memory, etc)
-    val changeType: String,  // WEIGHT_UPDATE, CREATION, DEPRECATION, etc
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+
+    @ColumnInfo(name = "entityId")
+    val entityId: String,
+
+    @ColumnInfo(name = "changeType")
+    val changeType: String,
+
+    @ColumnInfo(name = "description")
+    val description: String,
+
+    @ColumnInfo(name = "oldValue")
     val oldValue: String? = null,
+
+    @ColumnInfo(name = "newValue")
     val newValue: String? = null,
-    val reflection: String = ""
+
+    @ColumnInfo(name = "timestamp")
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 /**
- * Entity for storing autonomous decisions made by the system
+ * Autonomous Decision Entity
+ * Tracks autonomous AI decisions and their outcomes
  */
-@Entity(
-    tableName = "autonomous_decisions",
-    indices = [
-        Index("decisionId"),
-        Index("timestamp"),
-        Index("actionType")
-    ]
-)
-@Serializable
+@Entity(tableName = "autonomous_decisions")
 data class AutonomousDecisionEntity(
     @PrimaryKey
-    val id: String,
-    val decisionId: String,  // Unique ID for this decision
-    val actionType: String,  // Type of action taken
-    val actionDescription: String,
-    val reasoning: String,
-    val confidence: Float = 0.5f,
+    val decisionId: String = UUID.randomUUID().toString(),
+
+    @ColumnInfo(name = "actionType")
+    val actionType: String,
+
+    @ColumnInfo(name = "description")
+    val description: String,
+
+    @ColumnInfo(name = "confidence")
+    val confidence: Float,
+
+    @ColumnInfo(name = "executed")
     val executed: Boolean = false,
+
+    @ColumnInfo(name = "userApprovalRequested")
     val userApprovalRequested: Boolean = false,
+
+    @ColumnInfo(name = "userApproved")
     val userApproved: Boolean? = null,
-    val outcome: String = "",
-    val feedback: String = "",
+
+    @ColumnInfo(name = "outcome")
+    val outcome: String? = null,
+
+    @ColumnInfo(name = "timestamp")
     val timestamp: Long = System.currentTimeMillis()
 )
 
 /**
- * Entity for storing system performance metrics
+ * Performance Metric Entity
+ * Stores system performance metrics
  */
 @Entity(tableName = "performance_metrics")
-@Serializable
 data class PerformanceMetricEntity(
-    @PrimaryKey
-    val timestamp: Long,
-    val memoryAccessTime: Long = 0,  // ms
-    val reasoningTime: Long = 0,     // ms
-    val reflectionTime: Long = 0,    // ms
-    val evolutionTime: Long = 0,     // ms
-    val decisionTime: Long = 0,      // ms
-    val memoryUtilization: Float = 0f,  // 0-1
-    val cpuUtilization: Float = 0f,     // 0-1
-    val errorCount: Int = 0,
-    val successCount: Int = 0
-)
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
 
-/**
- * Entity for storing user feedback about autonomous actions
- */
-@Entity(
-    tableName = "feedback",
-    indices = [
-        Index("decisionId"),
-        Index("feedbackType"),
-        Index("timestamp")
-    ]
-)
-@Serializable
-data class FeedbackEntity(
-    @PrimaryKey
-    val id: String,
-    val decisionId: String,  // Related autonomous decision
-    val feedbackType: String,  // POSITIVE, NEGATIVE, NEUTRAL
-    val rating: Int? = null,   // 1-5 star rating
-    val comment: String = "",
-    val suggestedAction: String = "",
+    @ColumnInfo(name = "metricName")
+    val metricName: String,
+
+    @ColumnInfo(name = "value")
+    val value: Float,
+
+    @ColumnInfo(name = "unit")
+    val unit: String,
+
+    @ColumnInfo(name = "timestamp")
     val timestamp: Long = System.currentTimeMillis()
 )
 
 /**
- * Entity for storing system configuration and preferences
+ * Feedback Entity
+ * Stores user feedback for AI improvement
+ */
+@Entity(tableName = "feedback")
+data class FeedbackEntity(
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+
+    @ColumnInfo(name = "decisionId")
+    val decisionId: String? = null,
+
+    @ColumnInfo(name = "feedbackType")
+    val feedbackType: String,
+
+    @ColumnInfo(name = "content")
+    val content: String? = null,
+
+    @ColumnInfo(name = "rating")
+    val rating: Int? = null,
+
+    @ColumnInfo(name = "timestamp")
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+/**
+ * System Config Entity
+ * Stores system configuration key-value pairs
  */
 @Entity(tableName = "system_config")
-@Serializable
 data class SystemConfigEntity(
     @PrimaryKey
     val key: String,
-    val value: String,  // JSON encoded value
-    val type: String,   // STRING, INT, FLOAT, BOOLEAN, JSON
-    val description: String = "",
+
+    @ColumnInfo(name = "value")
+    val value: String,
+
+    @ColumnInfo(name = "description")
+    val description: String? = null,
+
+    @ColumnInfo(name = "updatedAt")
     val updatedAt: Long = System.currentTimeMillis()
 )
+

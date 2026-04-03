@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme -->
-    <style name="Theme.SAIHOS" parent="android:Theme.Material.Light.DarkActionBar">
-        <item name="android:colorPrimary">#2E7D32</item>
-        <item name="android:colorPrimaryDark">#1B5E20</item>
-        <item name="android:colorAccent">#4CAF50</item>
+    <!-- Base application theme - NoActionBar for WebView fullscreen -->
+    <style name="Theme.SAIHOS" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#0A0A0F</item>
+        <item name="android:colorPrimaryDark">#050508</item>
+        <item name="android:colorAccent">#00F5FF</item>
+        <item name="android:statusBarColor">#050508</item>
+        <item name="android:navigationBarColor">#0A0A0F</item>
+        <item name="android:windowBackground">#050508</item>
     </style>
 </resources>

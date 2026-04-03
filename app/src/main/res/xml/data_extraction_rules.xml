@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
-    <domain-config cleartextTrafficPermitted="false" />
+    <cloud-backup-rules>
+        <include domain="sharedpref" path="." />
+        <include domain="database" path="." />
+    </cloud-backup-rules>
+    <device-transfer-rules>
+        <include domain="sharedpref" path="." />
+        <include domain="database" path="." />
+    </device-transfer-rules>
 </data-extraction-rules>

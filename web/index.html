@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SA-AIHOS - Self-Aware Intelligent Host Operating System</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYa9j9P-mmxqPQEsJ7Ir1S7yaI3mpi2oA",
+            authDomain: "sa-aihos.firebaseapp.com",
+            projectId: "sa-aihos",
+            storageBucket: "sa-aihos.firebasestorage.app",
+            messagingSenderId: "328931326083",
+            appId: "1:328931326083:android:a7bccd0818ad95d31f43b6"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <p class="loading-text">Initializing SA-AIHOS...</p>
+            <div class="loading-bar">
+                <div class="loading-progress" id="loadingProgress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active" data-screen="login">
+        <div class="login-container">
+            <!-- Animated Background -->
+            <div class="animated-bg">
+                <div class="gradient-sphere" id="sphere1"></div>
+                <div class="gradient-sphere" id="sphere2"></div>
+                <div class="gradient-sphere" id="sphere3"></div>
+                <div class="neural-network" id="neuralNet"></div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="login-form-wrapper">
+                <div class="login-header">
+                    <div class="logo-animated">
+                        <div class="logo-core"></div>
+                        <div class="logo-ring"></div>
+                    </div>
+                    <h1>SA-AIHOS</h1>
+                    <p>Self-Aware Intelligent Host Operating System</p>
+                </div>
+
+                <form class="login-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="username">
+                            <span class="label-text">USERNAME</span>
+                            <span class="label-decoration"></span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="Enter your identifier"
+                            required
+                        >
+                        <div class="input-underline"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">
+                            <span class="label-text">PASSWORD</span>
+                            <span class="label-decoration"></span>
+                        </label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Enter your credentials"
+                            required
+                        >
+                        <div class="input-underline"></div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-custom">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkbox-label">Remember Me</span>
+                        </label>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="login-button">
+                        <span class="button-text">INITIALIZE SYSTEM</span>
+                        <span class="button-glow"></span>
+                        <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+
+                    <!-- Social Login Divider -->
+                    <div class="social-divider">
+                        <span class="divider-line"></span>
+                        <span class="divider-text">OR CONTINUE WITH</span>
+                        <span class="divider-line"></span>
+                    </div>
+
+                    <!-- Social Login Buttons -->
+                    <div class="social-login-buttons">
+                        <button type="button" class="social-btn google-btn" id="googleLoginBtn">
+                            <svg class="social-icon" viewBox="0 0 24 24">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            <span class="social-btn-text">Google</span>
+                        </button>
+                        <button type="button" class="social-btn github-btn" id="githubLoginBtn">
+                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                            <span class="social-btn-text">GitHub</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="login-footer">
+                    <p class="system-info">System Status: <span class="status-indicator online">ONLINE</span></p>
+                    <p class="ai-mode">AI Mode: <span class="status-text">ACTIVE</span></p>
+                </div>
+            </div>
+
+            <!-- Floating Particles -->
+            <div class="particles" id="particles"></div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="screen" data-screen="dashboard">
+        <div class="dashboard-wrapper">
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <div class="nav-left">
+                    <div class="logo-small">
+                        <div class="logo-core-small"></div>
+                    </div>
+                    <h2>SA-AIHOS Dashboard</h2>
+                </div>
+                <div class="nav-right">
+                    <div class="nav-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">System Health</span>
+                            <span class="stat-value" id="healthValue">89%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">AI Status</span>
+                            <span class="stat-value online">ACTIVE</span>
+                        </div>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn">Logout</button>
+                </div>
+            </nav>
+
+            <!-- 3D Canvas Container -->
+            <div id="threejsContainer" class="threejs-container"></div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Header Section -->
+                <div class="dashboard-header">
+                    <h1>Neural Core Interface</h1>
+                    <div class="header-controls">
+                        <button class="control-btn active" data-view="overview">
+                            <span>Overview</span>
+                        </button>
+                        <button class="control-btn" data-view="metrics">
+                            <span>Metrics</span>
+                        </button>
+                        <button class="control-btn" data-view="systems">
+                            <span>Systems</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Grid -->
+                <div class="dashboard-grid">
+                    <!-- System Status Card -->
+                    <div class="card system-status-card">
+                        <div class="card-header">
+                            <h3>System Status</h3>
+                            <div class="status-indicator online pulse"></div>
+                        </div>
+                        <div class="card-content">
+                            <div class="status-item">
+                                <span class="status-name">CPU Usage</span>
+                                <div class="status-bar">
+                                    <div class="status-fill" style="width: 45%"></div>
+                                </div>
+                                <span class="status-value">45%</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-name">Memory</span>
+                                <div class="status-bar">
+                                    <div class="status-fill" style="width: 62%"></div>
+                                </div>
+                                <span class="status-value">62%</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-name">Inference</span>
+                                <div class="status-bar">
+                                    <div class="status-fill" style="width: 78%"></div>
+                                </div>
+                                <span class="status-value">823ms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Memory Card -->
+                    <div class="card memory-card">
+                        <div class="card-header">
+                            <h3>AI Memory</h3>
+                            <span class="memory-type">Episodic</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="memory-stats">
+                                <div class="memory-stat">
+                                    <span class="memory-label">Stored</span>
+                                    <span class="memory-number">1,247</span>
+                                </div>
+                                <div class="memory-stat">
+                                    <span class="memory-label">Active</span>
+                                    <span class="memory-number">89</span>
+                                </div>
+                                <div class="memory-stat">
+                                    <span class="memory-label">Consolidated</span>
+                                    <span class="memory-number">956</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Evolution Card -->
+                    <div class="card evolution-card">
+                        <div class="card-header">
+                            <h3>Evolution Engine</h3>
+                            <span class="evolution-status">OPTIMIZING</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="evolution-chart" id="evolutionChart">
+                                <!-- SVG Chart will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Autonomy Card -->
+                    <div class="card autonomy-card">
+                        <div class="card-header">
+                            <h3>Autonomy Control</h3>
+                            <div class="toggle-switch" id="autonomyToggle">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="autonomy-info">
+                                <p>Independent Task Execution: <span class="value">ACTIVE</span></p>
+                                <p>Decision Making: <span class="value">ENABLED</span></p>
+                                <p>Learning Mode: <span class="value">ADAPTIVE</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Data Stream -->
+                    <div class="card data-stream-card">
+                        <div class="card-header">
+                            <h3>Data Stream</h3>
+                            <span class="stream-indicator pulse"></span>
+                        </div>
+                        <div class="card-content">
+                            <div class="stream-items" id="streamItems">
+                                <!-- Dynamic items will be added here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Card -->
+                    <div class="card settings-card">
+                        <div class="card-header">
+                            <h3>Quick Settings</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="setting-item">
+                                <span class="setting-name">Dark Mode</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <span class="setting-name">Notifications</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/three-setup.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

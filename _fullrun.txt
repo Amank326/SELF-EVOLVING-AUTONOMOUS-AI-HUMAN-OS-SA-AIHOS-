@@ -1,0 +1,39 @@
+--------- beginning of main
+03-10 13:39:50.621 14671 14671 I SAIHOSApplication: SA-AIHOS Application initialized with all services
+03-10 13:39:51.460 14671 14671 D MainActivity: MainActivity - SA-AIHOS App Launched!
+03-10 13:39:52.161 14671 14671 I MainActivity: RenderEngine: modular OpenGL ES 3.0 pipeline active
+03-10 13:39:59.670 14671 14705 D SmartAutomationEngine: [SmartAutomation] Initializing engine...
+03-10 13:39:59.848 14671 14707 I RenderEngine: RenderEngine: onSurfaceCreated (OpenGL ES 3.0)
+03-10 13:40:00.095 14671 14705 D SmartAutomationEngine: [SmartAutomation] Engine initialized successfully
+03-10 13:40:02.683 14671 14707 D GLShaderUtil: GLShaderUtil: program 3 linked OK
+03-10 13:40:02.813 14671 14707 D GLShaderUtil: GLShaderUtil: program 6 linked OK
+03-10 13:40:03.096 14671 14707 D GLShaderUtil: GLShaderUtil: program 9 linked OK
+03-10 13:40:04.189 14671 14707 D GLShaderUtil: GLShaderUtil: program 12 linked OK
+03-10 13:40:04.478 14671 14707 D GLShaderUtil: GLShaderUtil: program 15 linked OK
+03-10 13:40:04.500 14671 14707 D NeuralLatticePass: NeuralLatticePass: initialized (19 nodes, 18 connections)
+03-10 13:40:05.300 14671 14707 D GLShaderUtil: GLShaderUtil: program 18 linked OK
+03-10 13:40:05.718 14671 14707 D GLShaderUtil: GLShaderUtil: program 21 linked OK
+03-10 13:40:05.733 14671 14707 D HolographicHUDPass: HolographicHUDPass: initialized (16 panels)
+03-10 13:40:05.924 14671 14707 D GLShaderUtil: GLShaderUtil: program 24 linked OK
+03-10 13:40:06.379 14671 14707 D GLShaderUtil: GLShaderUtil: program 27 linked OK
+03-10 13:40:06.585 14671 14707 D GLShaderUtil: GLShaderUtil: program 30 linked OK
+03-10 13:40:06.636 14671 14707 D CognitiveGraphPass: CognitiveGraphPass: initialized (28 nodes, 33 edges)
+03-10 13:40:06.769 14671 14707 D GLShaderUtil: GLShaderUtil: program 33 linked OK
+03-10 13:40:06.926 14671 14707 D GLShaderUtil: GLShaderUtil: program 36 linked OK
+03-10 13:40:07.035 14671 14707 D GLShaderUtil: GLShaderUtil: program 39 linked OK
+03-10 13:40:07.106 14671 14707 D GLShaderUtil: GLShaderUtil: program 42 linked OK
+03-10 13:40:07.183 14671 14707 D ProceduralUniverseRenderer: ProceduralUniverseRenderer: initialized (3000 stars, 600 ambient particles)
+03-10 13:40:07.183 14671 14707 D ProceduralUniversePass: ProceduralUniversePass: initialized
+03-10 13:40:07.184 14671 14707 D GeometryPass: GeometryPass: initialized (3 shaders, 3 meshes, lattice=true, hud=true, cogGraph=true, universe=true)
+03-10 13:40:07.223 14671 14707 D GLShaderUtil: GLShaderUtil: program 45 linked OK
+03-10 13:40:07.263 14671 14707 D GLShaderUtil: GLShaderUtil: program 48 linked OK
+03-10 13:40:07.265 14671 14707 D BloomPass: BloomPass: initialized
+03-10 13:40:07.354 14671 14707 D GLShaderUtil: GLShaderUtil: program 51 linked OK
+03-10 13:40:07.358 14671 14707 D CompositePass: CompositePass: initialized (cognitive composite)
+03-10 13:40:07.454 14671 14707 D GLShaderUtil: GLShaderUtil: program 54 linked OK
+03-10 13:40:07.569 14671 14707 D GLShaderUtil: GLShaderUtil: program 57 linked OK
+03-10 13:40:07.636 14671 14707 D GLShaderUtil: GLShaderUtil: program 60 linked OK
+03-10 13:40:07.639 14671 14707 I RenderEngine: RenderEngine: 4 render passes initialized
+03-10 13:40:07.662 14671 14707 D GeometryPass: GeometryPass: FBO resized to 1080x2274
+03-10 13:40:07.673 14671 14707 D BloomPass: BloomPass: resized blur=540x1137
+03-10 13:40:07.698 14671 14707 I RenderEngine: RenderEngine: surface 1080x2274 quality=HIGH

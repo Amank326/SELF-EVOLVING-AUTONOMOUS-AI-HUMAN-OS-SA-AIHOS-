@@ -1,6 +1,8 @@
 package com.aihos.ai.analytics
 
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.*
 
@@ -70,6 +72,11 @@ data class AnalyticsSnapshot(
     val predictedStateChange: Float = 0f
 )
 
+data class SystemHealth(
+    val score: Float = 0.5f,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
 class AdvancedAnalyticsEngine {
     // Time series storage
     private val timeSeries = mutableMapOf<String, TimeSeries>()
@@ -77,13 +84,23 @@ class AdvancedAnalyticsEngine {
     // History
     private val history = mutableListOf<AnalyticsSnapshot>()
     private val maxHistory = 500
+    
+    // Event log
+    private val events = mutableListOf<Map<String, Any>>()
+    private val maxEvents = 1000
 
     // State
     private val _snapshot = MutableStateFlow(AnalyticsSnapshot())
     val snapshot: StateFlow<AnalyticsSnapshot> = _snapshot
 
+    // Event Flow for observers (e.g., notification system)
+    private val _eventFlow = MutableSharedFlow<Map<String, Any>>(replay = 10)
+    val eventFlow: SharedFlow<Map<String, Any>> = _eventFlow
+
     // Pattern detection
     private val patternDetectors = mutableMapOf<String, PatternDetector>()
+    
+    private var isRunning = false
 
     /**
      * Add data point to time series
@@ -366,6 +383,85 @@ class AdvancedAnalyticsEngine {
             val newPoints = series.dataPoints.filter { it.timestamp > cutoffTime }
             timeSeries[name] = TimeSeries(name, newPoints, series.window)
         }
+    }
+
+    /**
+     * Record system health metrics
+     */
+    fun recordSystemHealth(health: SystemHealth) {
+        _snapshot.value = _snapshot.value.copy(
+            systemHealthScore = health.score,
+            timestamp = System.currentTimeMillis()
+        )
+    }
+
+    /**
+     * Start analytics engine
+     */
+    fun start() {
+        isRunning = true
+    }
+
+    /**
+     * Stop analytics engine
+     */
+    fun stop() {
+        isRunning = false
+    }
+
+    /**
+     * Get metric history
+     */
+    fun getMetricHistory(metric: String): List<Double> {
+        return timeSeries[metric]?.dataPoints?.map { it.value.toDouble() } ?: emptyList()
+    }
+
+    /**
+     * Log event
+     */
+    fun logEvent(event: Map<String, Any>) {
+        events.add(event)
+        if (events.size > maxEvents) {
+            events.removeAt(0)
+        }
+        
+        // Emit event to SharedFlow for observers (e.g., notification system)
+        try {
+            _eventFlow.tryEmit(event)
+        } catch (e: Exception) {
+            // Ignore emit failures
+        }
+    }
+
+    /**
+     * Get all events
+     */
+    fun getEvents(): List<Map<String, Any>> = events.toList()
+
+    /**
+     * Get event flow for reactive subscribers
+     */
+    suspend fun getEventFlow(): SharedFlow<Map<String, Any>> = eventFlow
+
+    /**
+     * Log event with name and properties (convenience overload)
+     */
+    fun logEvent(eventName: String, properties: Map<String, Any> = emptyMap()) {
+        val event = mutableMapOf<String, Any>(
+            "event_name" to eventName,
+            "timestamp" to System.currentTimeMillis()
+        )
+        event.putAll(properties)
+        logEvent(event)
+    }
+
+    /**
+     * Clear history
+     */
+    fun clearHistory() {
+        history.clear()
+        timeSeries.clear()
+        events.clear()
     }
 }
 

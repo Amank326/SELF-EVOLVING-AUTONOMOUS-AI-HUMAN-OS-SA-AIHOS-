@@ -3,4 +3,6 @@
     <string name="app_name">SA-AIHOS</string>
     <string name="app_version">1.0.0</string>
     <string name="app_description">Self-Evolving Autonomous AI Human OS</string>
+    <color name="ic_launcher_background">#0A0A0F</color>
+    <color name="ic_launcher_foreground">#00F5FF</color>
 </resources>

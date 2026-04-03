@@ -5,12 +5,15 @@ import android.webkit.WebView
 import timber.log.Timber
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.aihos.ai.automation.SmartAutomationEngine
 
 /**
  * JavaScript Interface for Secure Android ↔ WebView Communication
  * Handles bidirectional message passing between 3D web scene and Android app
+ * Includes Smart Automation bridge for realtime task management
  */
 class AndroidJSInterface(
     private val webView: WebView,
@@ -18,6 +21,9 @@ class AndroidJSInterface(
 ) {
     private val scope = MainScope()
     private val gson = Gson()
+
+    // Smart Automation Engine reference (set from MainActivity)
+    var automationEngine: SmartAutomationEngine? = null
 
     /**
      * Called from JavaScript: window.SAIHOSBridge.handleMessage()
@@ -169,5 +175,118 @@ class AndroidJSInterface(
     @JavascriptInterface
     fun logError(error: String) {
         Timber.e("[WebView] ERROR: $error")
+    }
+
+    // ==========================================
+    // SMART AUTOMATION BRIDGE
+    // ==========================================
+
+    /**
+     * Get all automation tasks as JSON
+     */
+    @JavascriptInterface
+    fun getAutomationTasks(): String {
+        return try {
+            runBlocking {
+                automationEngine?.getAutomationsJson() ?: "[]"
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "[AndroidJSInterface] Error getting automation tasks")
+            "[]"
+        }
+    }
+
+    /**
+     * Create a new automation task
+     */
+    @JavascriptInterface
+    fun createAutomationTask(name: String, description: String, type: String, category: String): String {
+        return try {
+            runBlocking {
+                val task = automationEngine?.createAutomation(
+                    name = name,
+                    description = description,
+                    type = type,
+                    category = category
+                )
+                task?.id ?: ""
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "[AndroidJSInterface] Error creating automation")
+            ""
+        }
+    }
+
+    /**
+     * Execute a specific automation task
+     */
+    @JavascriptInterface
+    fun executeAutomation(taskId: String): Boolean {
+        return try {
+            runBlocking {
+                automationEngine?.executeAutomation(taskId) ?: false
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "[AndroidJSInterface] Error executing automation")
+            false
+        }
+    }
+
+    /**
+     * Toggle automation enabled/disabled
+     */
+    @JavascriptInterface
+    fun toggleAutomation(taskId: String, enabled: Boolean) {
+        scope.launch {
+            try {
+                automationEngine?.toggleAutomation(taskId, enabled)
+            } catch (e: Exception) {
+                Timber.e(e, "[AndroidJSInterface] Error toggling automation")
+            }
+        }
+    }
+
+    /**
+     * Delete an automation task
+     */
+    @JavascriptInterface
+    fun deleteAutomation(taskId: String) {
+        scope.launch {
+            try {
+                automationEngine?.deleteAutomation(taskId)
+            } catch (e: Exception) {
+                Timber.e(e, "[AndroidJSInterface] Error deleting automation")
+            }
+        }
+    }
+
+    /**
+     * Get agent status (multitasking agent state)
+     */
+    @JavascriptInterface
+    fun getAgentStatus(): String {
+        return try {
+            runBlocking {
+                automationEngine?.getAgentStatusJson() ?: "{}"
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "[AndroidJSInterface] Error getting agent status")
+            "{}"
+        }
+    }
+
+    /**
+     * Get automation engine stats
+     */
+    @JavascriptInterface
+    fun getAutomationStats(): String {
+        return try {
+            runBlocking {
+                automationEngine?.getStatsJson() ?: "{}"
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "[AndroidJSInterface] Error getting automation stats")
+            "{}"
+        }
     }
 }

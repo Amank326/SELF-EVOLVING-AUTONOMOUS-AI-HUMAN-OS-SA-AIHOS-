@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SA-AIHOS OS Monitor - System Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            border-bottom: 2px solid rgba(100, 200, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #64c8ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            max-width: 2000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(20, 24, 50, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(100, 200, 255, 0.5);
+            box-shadow: 0 0 20px rgba(100, 200, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #64c8ff;
+        }
+
+        .card-icon {
+            font-size: 20px;
+        }
+
+        .metric {
+            margin: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: #a0a0a0;
+        }
+
+        .metric-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(100, 200, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #64c8ff, #00ff88);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(100, 200, 255, 0.2);
+            border: 1px solid rgba(100, 200, 255, 0.5);
+            color: #64c8ff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: rgba(100, 200, 255, 0.4);
+            box-shadow: 0 0 10px rgba(100, 200, 255, 0.3);
+        }
+
+        .alert-box {
+            background: rgba(255, 100, 100, 0.1);
+            border: 1px solid rgba(255, 100, 100, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #ff6464;
+        }
+
+        .success-box {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #00ff88;
+        }
+
+        .process-list {
+            max-height: 250px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+
+        .process-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.1);
+            align-items: center;
+        }
+
+        .process-name {
+            color: #64c8ff;
+            font-weight: bold;
+        }
+
+        .process-status {
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .status-running {
+            background: rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+
+        .status-paused {
+            background: rgba(255, 200, 0, 0.3);
+            color: #ffc800;
+        }
+
+        .status-completed {
+            background: rgba(100, 200, 255, 0.3);
+            color: #64c8ff;
+        }
+
+        .wide-card {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .wide-card {
+                grid-column: span 1;
+            }
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+        }
+
+        .chart {
+            width: 100%;
+            height: 150px;
+            background: rgba(100, 200, 255, 0.05);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #64c8ff;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: #707080;
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        .grid-2 {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-2 {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🖥️ SA-AIHOS OS Monitor</div>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>System Online</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- System Status -->
+        <div class="card grid-2">
+            <div class="card-header">
+                <div class="card-title">⚙️ System Status</div>
+            </div>
+            <div id="systemStatus"></div>
+            <div class="button-group">
+                <button class="btn" onclick="refreshSystem()">Refresh</button>
+                <button class="btn" onclick="healthCheck()">Health Check</button>
+                <button class="btn" onclick="triggerRecovery()">Recovery</button>
+            </div>
+        </div>
+
+        <!-- Processes -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🔧 Processes</div>
+                <div class="card-icon" id="processCount">0</div>
+            </div>
+            <div id="processMetrics"></div>
+            <div class="process-list" id="processList"></div>
+            <div class="button-group">
+                <button class="btn" onclick="refreshProcesses()">Refresh</button>
+                <button class="btn" onclick="createProcess()">New Process</button>
+            </div>
+        </div>
+
+        <!-- Task Scheduler -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📅 Task Scheduler</div>
+                <div class="card-icon" id="taskCount">0</div>
+            </div>
+            <div id="taskStats"></div>
+            <div class="button-group">
+                <button class="btn" onclick="scheduleCronTask()">Schedule Cron</button>
+                <button class="btn" onclick="scheduleInterval()">Schedule Interval</button>
+            </div>
+        </div>
+
+        <!-- Users & Permissions -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">👥 Users & Permissions</div>
+                <div class="card-icon" id="userCount">0</div>
+            </div>
+            <div id="userStats"></div>
+            <div class="button-group">
+                <button class="btn" onclick="registerUser()">Add User</button>
+                <button class="btn" onclick="listUsers()">List Users</button>
+            </div>
+        </div>
+
+        <!-- System Logs -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📋 System Logs</div>
+                <div class="card-icon" id="logCount">0</div>
+            </div>
+            <div id="logStats"></div>
+            <div class="button-group">
+                <button class="btn" onclick="refreshLogs()">Refresh</button>
+                <button class="btn" onclick="exportLogs()">Export</button>
+                <button class="btn" onclick="clearLogs()">Clear</button>
+            </div>
+        </div>
+
+        <!-- System Alerts -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">⚠️ System Alerts</div>
+                <div class="card-icon" id="alertCount">0</div>
+            </div>
+            <div id="alertsList"></div>
+        </div>
+
+        <!-- Health Checks -->
+        <div class="card grid-2">
+            <div class="card-header">
+                <div class="card-title">💊 Health Checks</div>
+            </div>
+            <div id="healthStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let ws = null;
+
+        // Initialize WebSocket
+        function initWebSocket() {
+            ws = new WebSocket('ws://localhost:3000');
+            ws.onopen = () => console.log('WebSocket connected');
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                updateRealtime(data);
+            };
+            ws.onerror = () => console.error('WebSocket error');
+        }
+
+        // Auto-refresh
+        function autoRefresh() {
+            refreshSystem();
+            refreshProcesses();
+            refreshLogs();
+            setTimeout(autoRefresh, 5000);
+        }
+
+        async function refreshSystem() {
+            try {
+                const response = await fetch(`${API_BASE}/system/status`);
+                const data = await response.json();
+                if (data.success) {
+                    const sys = data.data;
+                    document.getElementById('systemStatus').innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">Status</span>
+                            <span class="metric-value">${sys.status.toUpperCase()}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Uptime</span>
+                            <span class="metric-value">${sys.uptime}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Hostname</span>
+                            <span class="metric-value">${sys.hostname}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">CPU Count</span>
+                            <span class="metric-value">${sys.cpuCount}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Total Memory</span>
+                            <span class="metric-value">${sys.totalMemory}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Free Memory</span>
+                            <span class="metric-value">${sys.freeMemory}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Load Average</span>
+                            <span class="metric-value">${sys.loadAverage.join(', ')}</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function refreshProcesses() {
+            try {
+                const response = await fetch(`${API_BASE}/processes`);
+                const data = await response.json();
+                if (data.success) {
+                    const metrics = await fetch(`${API_BASE}/processes/metrics`);
+                    const metricsData = await metrics.json();
+                    if (metricsData.success) {
+                        const m = metricsData.data;
+                        document.getElementById('processCount').textContent = data.data.length;
+                        document.getElementById('processMetrics').innerHTML = `
+                            <div class="metric">
+                                <span class="metric-label">Running</span>
+                                <span class="metric-value">${m.currentRunning}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Total Created</span>
+                                <span class="metric-value">${m.totalCreated}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Terminated</span>
+                                <span class="metric-value">${m.totalTerminated}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">CPU Usage</span>
+                                <span class="metric-value">${m.totalCpuUsage}%</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Memory Usage</span>
+                                <span class="metric-value">${m.totalMemoryUsage} MB</span>
+                            </div>
+                        `;
+                    }
+
+                    // List processes
+                    const runningProcs = data.data.filter(p => p.status === 'running').slice(0, 5);
+                    document.getElementById('processList').innerHTML = runningProcs.map(p => `
+                        <div class="process-item">
+                            <div class="process-name">${p.name} (${p.pid})</div>
+                            <div class="process-status status-${p.status.toLowerCase()}">${p.status}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function refreshLogs() {
+            try {
+                const response = await fetch(`${API_BASE}/logs/statistics`);
+                const data = await response.json();
+                if (data.success) {
+                    const stats = data.data;
+                    document.getElementById('logCount').textContent = stats.total;
+                    document.getElementById('logStats').innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">Total Logs</span>
+                            <span class="metric-value">${stats.total}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">DEBUG</span>
+                            <span class="metric-value">${stats.byLevel.DEBUG}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">INFO</span>
+                            <span class="metric-value">${stats.byLevel.INFO}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">WARN</span>
+                            <span class="metric-value">${stats.byLevel.WARN}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">ERROR</span>
+                            <span class="metric-value">${stats.byLevel.ERROR}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">CRITICAL</span>
+                            <span class="metric-value">${stats.byLevel.CRITICAL}</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function healthCheck() {
+            try {
+                const response = await fetch(`${API_BASE}/system/health`);
+                const data = await response.json();
+                if (data.success) {
+                    const checks = data.data;
+                    document.getElementById('healthStatus').innerHTML = checks.map(check => {
+                        const statusClass = check.status === 'healthy' ? 'success-box' : 'alert-box';
+                        return `<div class="${statusClass}">${check.component}: ${check.value} (${check.status})</div>`;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function triggerRecovery() {
+            if (confirm('Trigger system recovery?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/system/recovery`, { method: 'POST' });
+                    const data = await response.json();
+                    alert(data.message || data.error);
+                } catch (error) {
+                    alert('Recovery failed: ' + error);
+                }
+            }
+        }
+
+        async function exportLogs() {
+            try {
+                const response = await fetch(`${API_BASE}/logs/export`, { method: 'POST' });
+                const data = await response.json();
+                alert('Logs exported to: ' + data.filepath);
+            } catch (error) {
+                alert('Export failed: ' + error);
+            }
+        }
+
+        async function clearLogs() {
+            if (confirm('Clear all logs?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/logs/clear`);
+                    const data = await response.json();
+                    alert(data.message);
+                } catch (error) {
+                    alert('Clear failed: ' + error);
+                }
+            }
+        }
+
+        function createProcess() {
+            const name = prompt('Process name:');
+            if (name) {
+                fetch(`${API_BASE}/processes/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, type: 'task', priority: 'normal' })
+                }).then(r => r.json()).then(data => {
+                    alert('Process created: ' + data.data.pid);
+                    refreshProcesses();
+                });
+            }
+        }
+
+        function scheduleCronTask() {
+            const name = prompt('Task name:');
+            const cron = prompt('Cron expression (e.g., "0 * * * *" for every hour):');
+            if (name && cron) {
+                fetch(`${API_BASE}/scheduler/schedule-cron`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, cronExpression: cron })
+                }).then(r => r.json()).then(data => {
+                    alert('Task scheduled: ' + data.data.taskId);
+                });
+            }
+        }
+
+        function scheduleInterval() {
+            const name = prompt('Task name:');
+            const interval = prompt('Interval in ms (e.g., 5000 for 5 seconds):');
+            if (name && interval) {
+                fetch(`${API_BASE}/scheduler/schedule-interval`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, intervalMs: parseInt(interval) })
+                }).then(r => r.json()).then(data => {
+                    alert('Task scheduled: ' + data.data.taskId);
+                });
+            }
+        }
+
+        function registerUser() {
+            const username = prompt('Username:');
+            if (username) {
+                const password = prompt('Password:');
+                const email = prompt('Email:');
+                if (password && email) {
+                    fetch(`${API_BASE}/users/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password, email, role: 'user' })
+                    }).then(r => r.json()).then(data => {
+                        alert('User created: ' + data.data.userId);
+                    });
+                }
+            }
+        }
+
+        async function listUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                const data = await response.json();
+                if (data.success) {
+                    const users = data.data;
+                    document.getElementById('userCount').textContent = users.length;
+                    document.getElementById('userStats').innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">Total Users</span>
+                            <span class="metric-value">${users.length}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Administrators</span>
+                            <span class="metric-value">${users.filter(u => u.role === 'admin').length}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Active Users</span>
+                            <span class="metric-value">${users.filter(u => u.status === 'active').length}</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function updateRealtime(data) {
+            // Update based on WebSocket messages
+            console.log('Real-time update:', data);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            initWebSocket();
+            autoRefresh();
+            healthCheck();
+            listUsers();
+        });
+    </script>
+</body>
+</html>

@@ -14,14 +14,7 @@ import java.time.Instant
  * - Priority management
  */
 
-data class Goal(
-    val id: String = java.util.UUID.randomUUID().toString(),
-    val description: String,
-    val priority: Float = 0.5f, // 0.0 to 1.0
-    val deadline: Long? = null,
-    val status: String = "active", // active, completed, abandoned
-    val progress: Float = 0f
-)
+// Goal is defined in AutonomyModels.kt (uses GoalStatus enum)
 
 data class Action(
     val id: String = java.util.UUID.randomUUID().toString(),
@@ -82,9 +75,12 @@ class AutonomyController {
      */
     suspend fun setGoal(description: String, priority: Float = 0.5f, deadline: Long? = null) {
         val goal = Goal(
+            id = java.util.UUID.randomUUID().toString(),
             description = description,
             priority = priority.coerceIn(0f, 1f),
-            deadline = deadline
+            deadline = deadline,
+            status = GoalStatus.ACTIVE,
+            progress = 0f
         )
         val current = _goals.value.toMutableList()
         current.add(goal)
@@ -101,9 +97,9 @@ class AutonomyController {
         if (index >= 0) {
             val goal = current[index]
             val status = when {
-                progress >= 1.0f -> "completed"
-                progress <= 0f -> "abandoned"
-                else -> "active"
+                progress >= 1.0f -> GoalStatus.COMPLETED
+                progress <= 0f -> GoalStatus.ABANDONED
+                else -> GoalStatus.ACTIVE
             }
             current[index] = goal.copy(progress = progress.coerceIn(0f, 1f), status = status)
             _goals.emit(current)
@@ -210,7 +206,7 @@ class AutonomyController {
      */
     fun getActivePrioritizedGoals(): List<Goal> {
         return _goals.value
-            .filter { it.status == "active" }
+            .filter { it.status == GoalStatus.ACTIVE }
             .sortedByDescending { it.priority }
     }
 
@@ -225,7 +221,7 @@ class AutonomyController {
      * Get autonomy metrics
      */
     fun getAutonomyMetrics(): Map<String, Any> {
-        val completedGoals = _goals.value.count { it.status == "completed" }
+        val completedGoals = _goals.value.count { it.status == GoalStatus.COMPLETED }
         val executedCount = _executedActions.value.size
         val avgActionUtility = _executedActions.value
             .mapNotNull { action ->
@@ -235,7 +231,7 @@ class AutonomyController {
         
         return mapOf(
             "autonomyLevel" to _autonomyLevel.value,
-            "activeGoals" to _goals.value.count { it.status == "active" },
+            "activeGoals" to _goals.value.count { it.status == GoalStatus.ACTIVE },
             "completedGoals" to completedGoals,
             "executedActions" to executedCount,
             "averageActionUtility" to avgActionUtility,
@@ -260,7 +256,7 @@ class AutonomyController {
      */
     private suspend fun updateAutonomyState() {
         val newState = AutonomyState(
-            activeGoals = _goals.value.filter { it.status == "active" },
+            activeGoals = _goals.value.filter { it.status == GoalStatus.ACTIVE },
             pendingDecisions = _decisions.value.filter { it.executedAt == null },
             executedActions = _executedActions.value,
             autonomyLevel = _autonomyLevel.value,
@@ -274,7 +270,7 @@ class AutonomyController {
      */
     private fun calculateAdaptability(): Float {
         val goalChangeFrequency = if (_goals.value.isNotEmpty()) {
-            _goals.value.count { it.status == "abandoned" }.toFloat() / _goals.value.size
+            _goals.value.count { it.status == GoalStatus.ABANDONED }.toFloat() / _goals.value.size
         } else {
             0.5f
         }

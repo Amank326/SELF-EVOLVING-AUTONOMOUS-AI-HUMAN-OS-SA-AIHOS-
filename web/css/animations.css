@@ -1,0 +1,404 @@
+/* ================================
+   ADVANCED ANIMATIONS WITH GSAP
+   ================================ */
+
+// Initialize GSAP
+gsap.registerPlugin(ScrollTrigger);
+
+class AnimationController {
+    constructor() {
+        this.timeline = null;
+        this.loadingTimeline = null;
+        this.loginTimeline = null;
+        this.dashboardTimeline = null;
+    }
+
+    /**
+     * Initialize all animations
+     */
+    initAnimations() {
+        this.createLoadingAnimation();
+        this.createLoginAnimation();
+    }
+
+    /**
+     * Create loading screen animations
+     */
+    createLoadingAnimation() {
+        this.loadingTimeline = gsap.timeline();
+
+        // Stagger spinner rings
+        this.loadingTimeline.to('.spinner-ring', {
+            duration: 0.3,
+            opacity: 1,
+            stagger: 0.1
+        }, 0);
+
+        // Animate loading text
+        this.loadingTimeline.to('.loading-text', {
+            duration: 0.6,
+            opacity: 1,
+            y: 0
+        }, 0.2);
+
+        // Progress animation
+        this.loadingTimeline.to('.loading-progress', {
+            duration: 3,
+            width: '100%',
+            ease: 'power1.inOut'
+        }, 0.2);
+    }
+
+    /**
+     * Create login screen animations
+     */
+    createLoginAnimation() {
+        this.loginTimeline = gsap.timeline();
+
+        // Gradient spheres floating animation
+        this.loginTimeline.to('#sphere1', {
+            duration: 8,
+            x: 50,
+            y: 50,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+        }, 0);
+
+        this.loginTimeline.to('#sphere2', {
+            duration: 10,
+            x: -50,
+            y: -50,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+        }, 0);
+
+        this.loginTimeline.to('#sphere3', {
+            duration: 12,
+            x: 30,
+            y: -30,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+        }, 0);
+
+        // Neural network animation
+        this.loginTimeline.to('.neural-network', {
+            duration: 15,
+            backgroundPosition: '100% 100%',
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+        }, 0);
+
+        // Form entrance
+        this.loginTimeline.from('.login-form-wrapper', {
+            duration: 0.8,
+            opacity: 0,
+            y: 30,
+            ease: 'back.out'
+        }, 0.3);
+
+        // Form elements stagger
+        this.loginTimeline.from('.form-group', {
+            duration: 0.4,
+            opacity: 0,
+            x: -20,
+            stagger: 0.1,
+            ease: 'power2.out'
+        }, 0.5);
+
+        // Button entrance
+        this.loginTimeline.from('.login-button', {
+            duration: 0.6,
+            opacity: 0,
+            scale: 0.9,
+            ease: 'back.out'
+        }, '-=0.3');
+    }
+
+    /**
+     * Animate form input focus
+     */
+    animateInputFocus(input) {
+        gsap.to(input, {
+            duration: 0.3,
+            scale: 1.02,
+            ease: 'power2.out'
+        });
+    }
+
+    /**
+     * Animate form input blur
+     */
+    animateInputBlur(input) {
+        gsap.to(input, {
+            duration: 0.3,
+            scale: 1,
+            ease: 'power2.out'
+        });
+    }
+
+    /**
+     * Animate login button click
+     */
+    animateButtonClick() {
+        const timeline = gsap.timeline();
+
+        timeline.to('.login-button', {
+            duration: 0.1,
+            scale: 0.95,
+            ease: 'power2.in'
+        });
+
+        timeline.to('.login-button', {
+            duration: 0.2,
+            scale: 1,
+            ease: 'power2.out'
+        });
+
+        // Create ripple effect
+        timeline.to('.button-glow', {
+            duration: 0.6,
+            opacity: 1,
+            scale: 1.5,
+            ease: 'power1.out'
+        }, 0);
+    }
+
+    /**
+     * Animate screen transition (Login to Dashboard)
+     */
+    animateScreenTransition(fromScreen, toScreen) {
+        const timeline = gsap.timeline();
+
+        // Fade out current screen
+        timeline.to(fromScreen, {
+            duration: 0.4,
+            opacity: 0,
+            ease: 'power1.inOut'
+        }, 0);
+
+        // Show new screen and fade in
+        timeline.call(() => {
+            fromScreen.classList.remove('active');
+            toScreen.classList.add('active');
+        }, null, 0.2);
+
+        timeline.from(toScreen, {
+            duration: 0.6,
+            opacity: 0,
+            ease: 'power1.inOut'
+        }, 0.2);
+
+        return timeline;
+    }
+
+    /**
+     * Animate dashboard entrance
+     */
+    createDashboardAnimation() {
+        this.dashboardTimeline = gsap.timeline();
+
+        // Header animation
+        this.dashboardTimeline.from('.dashboard-header', {
+            duration: 0.6,
+            opacity: 0,
+            y: 20,
+            ease: 'power2.out'
+        }, 0);
+
+        // Cards stagger entrance
+        this.dashboardTimeline.from('.card', {
+            duration: 0.6,
+            opacity: 0,
+            y: 30,
+            stagger: {
+                amount: 0.3,
+                from: 'start'
+            },
+            ease: 'power2.out'
+        }, 0.2);
+
+        // Status bars fill animation
+        this.dashboardTimeline.to('.status-fill', {
+            duration: 1.2,
+            width: 'var(--width)',
+            stagger: 0.1,
+            ease: 'power1.inOut'
+        }, 0.5);
+
+        // Stats counter animation
+        this.dashboardTimeline.to('.stat-value', {
+            duration: 1,
+            innerText: (i) => {
+                const values = [98, 1247, 56];
+                return values[i] || 0;
+            },
+            snap: { innerText: 1 },
+            stagger: 0.1
+        }, 0.3);
+    }
+
+    /**
+     * Animate card hover
+     */
+    animateCardHover(card) {
+        gsap.to(card, {
+            duration: 0.4,
+            y: -8,
+            boxShadow: '0 12px 40px rgba(0, 217, 255, 0.15)',
+            ease: 'power2.out'
+        });
+    }
+
+    /**
+     * Animate card hover out
+     */
+    animateCardHoverOut(card) {
+        gsap.to(card, {
+            duration: 0.4,
+            y: 0,
+            boxShadow: '0 0 0 rgba(0, 217, 255, 0)',
+            ease: 'power2.out'
+        });
+    }
+
+    /**
+     * Animate metric update
+     */
+    animateMetricUpdate(element, newValue) {
+        const timeline = gsap.timeline();
+
+        // Flash animation
+        timeline.to(element, {
+            duration: 0.1,
+            scale: 1.1,
+            ease: 'power2.out'
+        });
+
+        timeline.to(element, {
+            duration: 0.3,
+            innerText: newValue,
+            snap: { innerText: 1 },
+            ease: 'power1.inOut'
+        }, 0);
+
+        timeline.to(element, {
+            duration: 0.2,
+            scale: 1,
+            ease: 'power2.out'
+        }, 0.1);
+
+        return timeline;
+    }
+
+    /**
+     * Animate logout
+     */
+    animateLogout() {
+        const timeline = gsap.timeline();
+
+        // Fade dashboard content
+        timeline.to('.dashboard-content', {
+            duration: 0.5,
+            opacity: 0,
+            ease: 'power1.inOut'
+        }, 0);
+
+        // Scale and fade
+        timeline.to('.dashboard-wrapper', {
+            duration: 0.3,
+            scale: 0.95,
+            opacity: 0,
+            ease: 'power1.inOut'
+        }, 0.2);
+
+        return timeline;
+    }
+
+    /**
+     * Create particle animation
+     */
+    animateParticles(particles) {
+        particles.forEach(particle => {
+            const randomX = gsap.utils.random(-300, 300);
+            const randomY = gsap.utils.random(-300, 300);
+            const randomDuration = gsap.utils.random(3, 8);
+            const randomDelay = gsap.utils.random(0, 2);
+
+            gsap.to(particle, {
+                duration: randomDuration,
+                x: randomX,
+                y: randomY,
+                opacity: 0,
+                delay: randomDelay,
+                repeat: -1,
+                yoyo: true,
+                ease: 'sine.inOut'
+            });
+        });
+    }
+
+    /**
+     * Create status bar animation
+     */
+    animateStatusBar(statusElement, targetValue) {
+        const timeline = gsap.timeline();
+
+        // Bar fill
+        timeline.to(`${statusElement} .status-fill`, {
+            duration: 1.5,
+            width: `${targetValue}%`,
+            ease: 'power2.inOut'
+        });
+
+        // Value counter
+        timeline.to(`${statusElement} .status-value`, {
+            duration: 1.5,
+            innerText: targetValue,
+            snap: { innerText: 1 },
+            ease: 'power1.inOut'
+        }, 0);
+
+        return timeline;
+    }
+
+    /**
+     * Create scroll animation for cards
+     */
+    createScrollAnimations() {
+        gsap.utils.toArray('.card').forEach((card) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: 'top bottom',
+                    end: 'top center',
+                    scrub: 1,
+                    markers: false
+                },
+                opacity: 0,
+                y: 50,
+                duration: 1
+            });
+        });
+    }
+
+    /**
+     * Toggle theme animation
+     */
+    animateThemeToggle() {
+        const timeline = gsap.timeline();
+
+        timeline.to(':root', {
+            duration: 0.6,
+            ease: 'power1.inOut'
+        });
+
+        return timeline;
+    }
+}
+
+// Export for use in other files
+window.AnimationController = AnimationController;

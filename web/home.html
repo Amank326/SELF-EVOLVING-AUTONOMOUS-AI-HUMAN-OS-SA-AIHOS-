@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SA-AIHOS - Self-Aware Intelligent Host Operating System</title>
+    <link rel="stylesheet" href="css/home.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <p class="loading-text">Initializing SA-AIHOS...</p>
+            <div class="loading-bar">
+                <div class="loading-progress" id="loadingProgress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="homeScreen" class="screen active" data-screen="home">
+        <!-- Animated Background -->
+        <div class="animated-bg">
+            <div class="particle-container" id="particleContainer"></div>
+            <canvas id="backgroundCanvas"></canvas>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <div class="logo-animated">
+                    <div class="logo-core"></div>
+                    <div class="logo-ring"></div>
+                </div>
+                <div>
+                    <h1>SA-AIHOS</h1>
+                    <p>Self-Evolving Autonomous AI</p>
+                </div>
+            </div>
+            <div class="navbar-menu">
+                <button class="nav-button" onclick="showSection('dashboard')">Dashboard</button>
+                <button class="nav-button" onclick="showSection('agent')">AI Agent</button>
+                <button class="nav-button" onclick="showSection('memory')">Memory</button>
+                <button class="nav-button" onclick="showSection('settings')">Settings</button>
+                <button class="nav-button logout" onclick="logout()">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <h2 class="section-title">Dashboard</h2>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-icon">📊</div>
+                        <h3>System Status</h3>
+                        <div class="card-content">
+                            <p>Status: <span id="systemStatus" class="status-badge online">OPERATIONAL</span></p>
+                            <p>AI Mode: <span id="aiMode" class="status-badge active">AUTONOMOUS</span></p>
+                            <p>Uptime: <span id="uptime">0h</span></p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-icon">🎯</div>
+                        <h3>Decision Metrics</h3>
+                        <div class="card-content">
+                            <p>Today's Decisions: <span id="decisionsToday" class="metric">0</span></p>
+                            <p>Success Rate: <span id="successRate" class="metric">--</span></p>
+                            <p>Avg Time: <span id="avgTime" class="metric">--</span>ms</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-icon">💾</div>
+                        <h3>Memory Stats</h3>
+                        <div class="card-content">
+                            <p>Episodes: <span id="episodeCount" class="metric">0</span></p>
+                            <p>Facts: <span id="factCount" class="metric">0</span></p>
+                            <p>Rules: <span id="ruleCount" class="metric">0</span></p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-icon">📈</div>
+                        <h3>Performance</h3>
+                        <div class="card-content">
+                            <div class="progress-bar">
+                                <div class="progress" id="cpuProgress" style="width: 25%"></div>
+                            </div>
+                            <p style="font-size: 0.9em; margin-top: 5px;">CPU: <span id="cpuUsage">25%</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Agent Section -->
+            <section id="agent" class="content-section">
+                <h2 class="section-title">🤖 AI Agent Control</h2>
+                <div class="agent-container">
+                    <div class="agent-status-panel">
+                        <h3>Agent Status</h3>
+                        <div class="status-display">
+                            <p>Running: <span id="agentRunning" class="status-badge active">YES</span></p>
+                            <p>Next Decision: <span id="nextDecision">--</span></p>
+                            <p>Last Thought: <span id="lastThought">--</span></p>
+                        </div>
+                    </div>
+
+                    <div class="autonomy-control">
+                        <h3>Autonomy Level</h3>
+                        <div class="slider-container">
+                            <input type="range" id="autonomySlider" min="0" max="100" value="75" class="slider">
+                            <span id="autonomyValue">75%</span>
+                        </div>
+                        <div class="button-group">
+                            <button class="action-button" onclick="toggleAgentAutonomy()">Toggle Autonomy</button>
+                            <button class="action-button" onclick="triggerReflection()">Trigger Reflection</button>
+                        </div>
+                    </div>
+
+                    <div class="recent-decisions">
+                        <h3>Recent Decisions</h3>
+                        <div id="decisionsList" class="list-container">
+                            <p class="empty-state">Loading decisions...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Memory Section -->
+            <section id="memory" class="content-section">
+                <h2 class="section-title">🧠 Memory Management</h2>
+                <div class="memory-container">
+                    <div class="memory-tabs">
+                        <button class="tab-button active" onclick="switchMemoryTab('episodic')">Episodic</button>
+                        <button class="tab-button" onclick="switchMemoryTab('semantic')">Semantic</button>
+                        <button class="tab-button" onclick="switchMemoryTab('procedural')">Procedural</button>
+                    </div>
+
+                    <div id="episodic" class="memory-tab active">
+                        <h4>Episodes (Events & Outcomes)</h4>
+                        <div id="episodicList" class="memory-list">
+                            <p class="empty-state">Loading episodes...</p>
+                        </div>
+                    </div>
+
+                    <div id="semantic" class="memory-tab">
+                        <h4>Semantic Facts</h4>
+                        <div id="semanticList" class="memory-list">
+                            <p class="empty-state">Loading facts...</p>
+                        </div>
+                    </div>
+
+                    <div id="procedural" class="memory-tab">
+                        <h4>Behavioral Rules</h4>
+                        <div id="proceduralList" class="memory-list">
+                            <p class="empty-state">Loading rules...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Task Management Section -->
+            <section id="tasks" class="content-section">
+                <h2 class="section-title">📋 Task Management</h2>
+                <div class="tasks-container">
+                    <div class="create-task">
+                        <h3>Create New Task</h3>
+                        <input type="text" id="taskTitle" placeholder="Task title" class="input-field">
+                        <textarea id="taskDesc" placeholder="Task description" class="input-field"></textarea>
+                        <select id="taskPriority" class="input-field">
+                            <option>LOW</option>
+                            <option selected>MEDIUM</option>
+                            <option>HIGH</option>
+                        </select>
+                        <button class="action-button" onclick="createTask()">Create Task</button>
+                    </div>
+
+                    <div class="task-list">
+                        <h3>Tasks</h3>
+                        <div id="tasksList" class="list-container">
+                            <p class="empty-state">No tasks</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reasoning Visualizer Section -->
+            <section id="reasoning" class="content-section">
+                <h2 class="section-title">🧠 Reasoning Visualizer</h2>
+                <div class="reasoning-container">
+                    <div class="reasoning-panel">
+                        <h3>Decision Analysis</h3>
+                        <div id="reasoningDisplay" class="reasoning-display">
+                            <p class="empty-state">No recent reasoning...</p>
+                        </div>
+                    </div>
+
+                    <div class="reasoning-options">
+                        <h3>Decision Options</h3>
+                        <div id="optionsList" class="options-list">
+                            <p class="empty-state">Loading options...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Evolution Tracker Section -->
+            <section id="evolution" class="content-section">
+                <h2 class="section-title">🧬 Evolution Tracker</h2>
+                <div class="evolution-container">
+                    <div class="evolution-stats">
+                        <h3>Evolution Statistics</h3>
+                        <div id="evolutionStats" class="stats-display">
+                            <p class="empty-state">Loading evolution data...</p>
+                        </div>
+                    </div>
+
+                    <div class="evolution-timeline">
+                        <h3>Evolution History</h3>
+                        <div id="evolutionTimeline" class="timeline">
+                            <p class="empty-state">Loading history...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics" class="content-section">
+                <h2 class="section-title">📊 Analytics</h2>
+                <div class="analytics-container">
+                    <div class="chart-container">
+                        <h3>Decision Timeline</h3>
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+
+                    <div class="metrics-container">
+                        <h3>Performance Metrics</h3>
+                        <div id="performanceMetrics" class="metrics-display">
+                            <p class="empty-state">Loading metrics...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="content-section">
+                <h2 class="section-title">⚙️ Settings</h2>
+                <div class="settings-container">
+                    <div class="setting-group">
+                        <label>Theme</label>
+                        <select class="input-field">
+                            <option>Dark (Default)</option>
+                            <option>Light</option>
+                            <option>Auto</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>Refresh Rate (seconds)</label>
+                        <input type="number" id="refreshRate" class="input-field" value="5" min="1" max="60">
+                    </div>
+
+                    <div class="setting-group">
+                        <label>AI Decision Interval (ms)</label>
+                        <input type="number" id="decisionInterval" class="input-field" value="5000" min="1000" max="30000">
+                    </div>
+
+                    <div class="setting-group">
+                        <label>Memory Consolidation Threshold (%)</label>
+                        <input type="number" id="memoryThreshold" class="input-field" value="70" min="50" max="90">
+                    </div>
+
+                    <button class="action-button" onclick="saveSettings()">Save Settings</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/home.js"></script>
+</body>
+</html>
